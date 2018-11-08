@@ -1,4 +1,4 @@
-module Article where
+module TheEssenceOfDataflowProgramming where
 
 
 class Comonad d where
@@ -27,3 +27,5 @@ data Stream a = Cons a (Stream a)
 instance Comonad Stream where
   counit (Cons a _) = a
   cobind f d@(Cons a as) = Cons (f d) (cobind f as)
+
+-- Next Paragraph 5.2 Comonads for general and causal stream functions
