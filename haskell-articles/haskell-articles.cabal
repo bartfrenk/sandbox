@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a07df6e5e4f694ec61fbe44a3a6ea69cfcbeb5495dc0170c419dfd85e4b30d39
+-- hash: 35d117a5ee9ddf512b50ccba974f87bf89d9fa1e4f815edf6f1f699a5a9de384
 
 name:           haskell-articles
 version:        0.1.0.0
@@ -25,12 +25,15 @@ source-repository head
 library
   exposed-modules:
       TheEssenceOfDataflowProgramming
+      ThereIsNoFork
   other-modules:
       Paths_haskell_articles
   hs-source-dirs:
       src
+  ghc-options: -Wall
   build-depends:
       base >=4.7 && <5
+    , free
   default-language: Haskell2010
 
 test-suite the-essence-of-dataflow-programming-test
@@ -40,8 +43,9 @@ test-suite the-essence-of-dataflow-programming-test
       Paths_haskell_articles
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , free
     , haskell-articles
   default-language: Haskell2010
