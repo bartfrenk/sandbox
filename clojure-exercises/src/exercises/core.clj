@@ -150,3 +150,50 @@
 (take 3 (pronunciation [1]))
 
 (partition-by identity [1 1 2])
+
+;; Problem 108
+
+(def smallest
+  (fn [& xss]
+    (letfn [(smallest* [zss]
+               (let [heads (into [] (map first zss))]
+                 (if (apply = heads) (first heads)
+                     (let [j (apply min-key #(get heads %) (range (count heads)))]
+                       (recur (assoc zss j (rest (get zss j))))))))]
+      (smallest* (vec (map #(filter integer? %) xss))))))
+
+
+(smallest (map #(* % % %) (range)) ;; perfect cubes
+          (filter #(zero? (bit-and % (dec %))) (range)) ;; powers of 2
+          (iterate inc 20))
+
+(smallest (range) (range 0 100 7/6) [2 3 5 7 11 13])
+
+(smallest [1 2 3 4 5 6 7] [0.5 3/2 4 19])
+
+(smallest [3 4 5] [4 5 6])
+
+(first '(5 6q))
+
+(update [[3 4 5] [4 5 6]] 1 rest)
+
+(update [1 2 3] 1 inc)
+
+(min-key)
+
+
+(filter integer? (range 0 100 7/6))
+
+
+(defn f
+  ([n] (f n 1))
+  ([n acc]
+   (if (zero? n) acc (f (dec n) (+ n acc)))))
+
+(defn g
+  ([n] (f n 1))
+  ([n acc]
+   (if (zero? n) acc (recur (dec n) (+ n acc)))))
+
+
+(f 10000)
