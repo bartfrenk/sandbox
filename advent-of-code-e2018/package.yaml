@@ -21,6 +21,7 @@ dependencies:
 - parsec
 - mtl
 - containers
+- time
 
 
 library:

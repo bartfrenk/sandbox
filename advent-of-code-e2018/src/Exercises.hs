@@ -1,14 +1,18 @@
 module Exercises where
 
-import Control.Monad.Except
-import Control.Monad
-import Control.Monad.State
-import Data.List (foldl')
-import Data.Functor.Identity
-import Text.Parsec
-import qualified Data.Map.Strict as Map
-import Data.Map.Strict (Map)
-import qualified Data.Set as Set
+import           Control.Monad
+import           Control.Monad.Except
+import           Control.Monad.State
+import           Data.Functor.Identity
+import           Data.List             (foldl')
+import           Data.List             (sort)
+import           Data.Map.Strict       (Map)
+import qualified Data.Map.Strict       as Map
+import qualified Data.Set              as Set
+import           Data.Time.Format
+import           Data.Time.Clock
+import           Text.Parsec
+
 
 type Parser s a = Parsec s () a
 
@@ -42,8 +46,8 @@ answer1a = runExceptT (foldl' (+) 0 <$> readChanges "res/frequency-changes.txt")
 answer1b :: IO  (Either ParseError Int)
 answer1b = runExceptT (findFirstDuplicate <$> readChanges "res/frequency-changes.txt")
 
-readLines :: FilePath -> IO [String]
-readLines path = lines <$> readFile path
+readLines :: MonadIO m => FilePath -> m [String]
+readLines path = lines <$> (liftIO $ readFile path)
 
 score :: String -> (Int, Int)
 score cs =
@@ -151,3 +155,74 @@ nonOverlapping all = recur all
 
 answer3b :: IO (Either ParseError (Maybe Claim))
 answer3b = runExceptT $ nonOverlapping <$> readClaims "res/fabric-claims.txt"
+
+data Event
+  = ShiftStarts Int
+  | FallsAsleep
+  | WakesUp
+  deriving (Eq, Show)
+
+data Entry = Entry UTCTime Event deriving (Eq, Show)
+
+instance Ord Entry where
+  Entry t _ `compare` Entry s _ = t `compare` s
+
+parseEntry :: Monad m => String -> ExceptT ParseError m Entry
+parseEntry = liftEither . runParser entry () ""
+  where
+    entry = Entry <$> time <*> event
+    time = do
+      char '[' *> time' <* string "] "
+    time' =
+      let format = "%Y-%m-%d %H:%M"
+      in (many1 $ noneOf "]") >>= parseTimeM False defaultTimeLocale format
+    event =  choice [shiftStarts, fallsAsleep, wakesUp]
+    shiftStarts = do
+      string "Guard #"
+      id <- read <$> many1 digit
+      string " begins shift"
+      pure $ ShiftStarts id
+    fallsAsleep = string "falls asleep" >> pure FallsAsleep
+    wakesUp = string "wakes up" >> pure WakesUp
+
+readEntries :: FilePath -> ExceptT ParseError IO [Entry]
+readEntries path = do
+  lines <- readLines path
+  entries <- mapM parseEntry lines
+  pure $ sort entries
+
+selectGuard :: [Entry] -> (Int, NominalDiffTime)
+selectGuard ((Entry _ (ShiftStarts id)):es) =
+  let minutes = recur Map.empty id Nothing es
+  in foldl1 (\(g, t) (h, s) -> if s > t then (h, s) else (g, t)) (Map.toList minutes)
+  where
+    recur acc _ _ [] = acc
+    recur acc id time ((Entry _ (ShiftStarts id')):es)
+      = recur acc id' Nothing es
+    recur acc id time ((Entry t FallsAsleep):es)
+      = recur acc id (Just t) es
+    recur acc id (Just t') ((Entry t WakesUp):es)
+      = recur (Map.insertWith (+) id (diffUTCTime t t') acc) id Nothing es
+
+sleep :: [Entry] -> Map Int [(UTCTime, UTCTime)]
+sleep ((Entry _ (ShiftStarts id)):es) = recur Map.empty id Nothing es
+  where
+    recur acc _ _ [] = acc
+    recur acc id time ((Entry _ (ShiftStarts id')):es)
+      = recur acc id' Nothing es
+    recur acc id time ((Entry t FallsAsleep):es)
+      = recur acc id (Just t) es
+    recur acc id (Just t') ((Entry t WakesUp):es)
+      = recur (Map.insertWith (++) id [(t', t)] acc) id Nothing es
+
+-- countMinutes :: Int -> [Entry] -> Int
+-- countMinutes id entries =
+--   let sl = sleep entries
+--       intervals = sl Map.! 727
+--   in do
+--     (start, end) <- intervals
+--     undefined
+
+
+bla :: IO (Either ParseError (Maybe [(UTCTime, UTCTime)]))
+bla = runExceptT $ ((Map.lookup 727) . sleep <$> readEntries "res/guard-entries.txt")
