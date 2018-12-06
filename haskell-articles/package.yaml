@@ -15,6 +15,14 @@ description: >-
 
 dependencies:
 - base >= 4.7 && < 5
+- free
+- bytestring
+- mtl
+- random
+- cryptonite
+
+ghc-options:
+  - -Wall
 
 library:
   source-dirs: src
