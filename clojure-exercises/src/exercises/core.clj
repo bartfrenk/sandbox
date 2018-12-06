@@ -6,6 +6,8 @@
   [& args]
   (println "Hello, World!"))
 
+
+
 (def trampoline*
   (fn [f & args]
     (loop [f* (apply f args)]
@@ -20,6 +22,7 @@
 (letfn [(my-even? [x] (if (zero? x) true #(my-odd? (dec x))))
         (my-odd? [x] (if (zero? x) false #(my-even? (dec x))))]
   (map (partial trampoline* my-even?) (range 6)))
+
 
 (def balanced
   (fn [n]
@@ -55,6 +58,12 @@
          (vals)
          (map #(into #{} %))
          (into #{}))))
+
+(->> [1 2 3 4]
+     (map inc)
+     (apply +))
+
+
 
 
 (conj ) (conj nil 1)
