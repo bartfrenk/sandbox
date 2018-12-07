@@ -167,10 +167,11 @@ data Entry = Entry UTCTime Event deriving (Eq, Show)
 instance Ord Entry where
   Entry t _ `compare` Entry s _ = t `compare` s
 
+
+
 parseEntry :: Monad m => String -> ExceptT ParseError m Entry
-parseEntry = liftEither . runParser entry () ""
+parseEntry = liftEither . runParser (Entry <$> time <*> event) () ""
   where
-    entry = Entry <$> time <*> event
     time = do
       char '[' *> time' <* string "] "
     time' =
