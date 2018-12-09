@@ -14,6 +14,17 @@ object Node {
   type RoutingTable = List[Option[Route]]
 }
 
+object NodeState {
+  def update(state: NodeState): NodeState = {
+    return state
+  }
+}
+
+case class NodeState(
+  left: ActorRef,
+  right: ActorRef,
+  parent: ActorRef)
+
 
 class Node(id: Int, seed: Option[ActorRef]) extends Actor with ActorLogging {
   import Node._
