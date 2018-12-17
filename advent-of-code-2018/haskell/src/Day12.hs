@@ -1,5 +1,5 @@
 {-# LANGUAGE StrictData #-}
-module Day2 where
+module Day12 where
 
 import Data.Maybe
 import Data.List

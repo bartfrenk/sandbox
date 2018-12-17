@@ -23,6 +23,9 @@ dependencies:
 - mtl
 - containers
 - time
+- vector
+- strict
+
 
 
 library:
