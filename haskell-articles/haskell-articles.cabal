@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: df7ba1d2963b493421f186605d55468bea3bbbe658da88333523054acb25e4b4
+-- hash: d7cf1b5c71706879acbe3bac4a8d3e5462e61bbf2d56ec408f0b41274a811d60
 
 name:           haskell-articles
 version:        0.1.0.0
@@ -25,6 +25,7 @@ source-repository head
 library
   exposed-modules:
       Bitcoin
+      Snark
       TheEssenceOfDataflowProgramming
       ThereIsNoFork
   other-modules:
