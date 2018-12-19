@@ -124,25 +124,19 @@ tick tracks carts = recur 0 carts
       else Right carts'
 
 
-tick' :: Tracks -> Vector Cart -> Either (Cart, Vector Cart) (Vector Cart)
-tick' tracks carts = recur 0 carts
+tick' :: Tracks -> [Cart] -> [Cart]
+tick' tracks carts = recur [] carts
   where
-    n = length carts
-    recur idx carts' =
-      if idx < n
-      then let cart@(Cart coords _ _)  = case moveCart tracks (carts' ! idx) of
-                                           Right cart -> cart
-                                           Left (cart, c) ->
-                                             trace (show $ (c, carts' ! idx)) cart
-               collisions = flip Vector.ifilter carts' $
-                 \i (Cart coords' _ _) -> (coords == coords') && (idx /= i)
-           -- TODO: update is linear in the length of the vector
-           in if Vector.null collisions
-              then recur (idx + 1) (carts' // [(idx, cart)])
-              else Left (cart, collisions)
-      else Right carts'
+    recur moved [] = moved
+    recur moved (cart:remaining) =
+      let (Right cart') = moveCart tracks cart
+          (moved', moved'') = partition (collide cart') moved
+          (remain', remain'') = partition (collide cart') remaining
+      in if null moved' && null remain'
+         then recur (cart':moved'') remain''
+         else recur moved'' remain''
 
-
+    collide (Cart x _ _) (Cart y _ _) = x == y
 
 -- TODO: converting to and from a list is likely to be costly
 sortVector :: Ord a => Vector a -> Vector a
@@ -156,15 +150,21 @@ firstCollision tracks carts = recur carts
         Right carts'' -> recur carts''
         Left (cart, collisions) -> (cart, collisions)
 
-lastCart :: Tracks -> Vector Cart -> Cart
+lastCart :: Tracks -> [Cart] -> Maybe Cart
 lastCart tracks carts = recur carts
   where
     recur carts' =
-      case tick tracks (sortVector carts') of
-        Right carts'' -> recur carts''
-        
+      case tick' tracks (sort carts') of
+        [] -> Nothing
+        [cart] -> Just cart
+        carts'' -> recur carts''
 
 answer13a = do
-  tracks <- fromJust . parseTracks <$> readFile "res/input-13.txt"
+  tracks <- fromJust . parseTracks <$> readFile "res/input-13-test-3.txt"
   let carts = extractCarts tracks
   pure $ firstCollision tracks carts
+
+answer13b = do
+  tracks <- fromJust . parseTracks <$> readFile "res/input-13.txt"
+  let carts = Vector.toList $ extractCarts tracks
+  pure $ lastCart tracks carts
