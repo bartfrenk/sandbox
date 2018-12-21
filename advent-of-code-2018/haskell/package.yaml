@@ -13,6 +13,9 @@ default-extensions:
   - FlexibleContexts
   - LambdaCase
   - BangPatterns
+  - MultiWayIf
+  - RecordWildCards
+  - NamedFieldPuns
 
 
 dependencies:
@@ -22,6 +25,9 @@ dependencies:
 - mtl
 - containers
 - time
+- vector
+- strict
+
 
 
 library:

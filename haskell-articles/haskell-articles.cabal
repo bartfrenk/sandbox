@@ -1,11 +1,5 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.0.
---
--- see: https://github.com/sol/hpack
---
--- hash: 68a79d044ed53654ff7674f2823beb5d0edbe9bf28bb8cb1e74c8a1a479026bc
-
 name:           haskell-articles
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/the-essence-of-dataflow-programming#readme>
@@ -27,6 +21,7 @@ library
   exposed-modules:
       Bitcoin
       Strategy
+      Snark
       TheEssenceOfDataflowProgramming
       ThereIsNoFork
   other-modules:
