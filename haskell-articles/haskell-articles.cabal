@@ -1,8 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
---
--- see: https://github.com/sol/hpack
---
--- hash: d7cf1b5c71706879acbe3bac4a8d3e5462e61bbf2d56ec408f0b41274a811d60
+cabal-version: 1.12
 
 name:           haskell-articles
 version:        0.1.0.0
@@ -14,7 +10,6 @@ maintainer:     bart.frenk@gmail.com
 copyright:      2018 Bart Frenk
 license:        BSD3
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
     README.md
 
@@ -25,6 +20,7 @@ source-repository head
 library
   exposed-modules:
       Bitcoin
+      Strategy
       Snark
       TheEssenceOfDataflowProgramming
       ThereIsNoFork
