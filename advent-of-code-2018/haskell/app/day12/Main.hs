@@ -1,5 +1,5 @@
 {-# LANGUAGE StrictData #-}
-module Day12 where
+module Main where
 
 import Data.Maybe
 import Data.List
@@ -149,3 +149,6 @@ answer12 n= runExceptT $ do
 
   pure $ foldl' (+) 0 (take (10 * n) left) +
     foldl' (+) 0 (take (10 * n) right)
+
+main :: IO ()
+main = answer12 50 >>= print

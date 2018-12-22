@@ -1,4 +1,4 @@
-module Day13 where
+module Main where
 
 import           Data.Function    ((&))
 import           Data.List
@@ -159,12 +159,20 @@ lastCart tracks carts = recur carts
         [cart] -> Just cart
         carts'' -> recur carts''
 
+answer13a :: IO (Cart, Vector Cart)
 answer13a = do
   tracks <- fromJust . parseTracks <$> readFile "res/input-13-test-3.txt"
   let carts = extractCarts tracks
   pure $ firstCollision tracks carts
 
+answer13b :: IO (Maybe Cart)
 answer13b = do
   tracks <- fromJust . parseTracks <$> readFile "res/input-13.txt"
   let carts = Vector.toList $ extractCarts tracks
   pure $ lastCart tracks carts
+
+main :: IO ()
+main = do
+  answer13a >>= \x -> putStrLn $ "13a: " ++ show x
+  answer13b >>= \x -> putStrLn $ "13a: " ++ show x
+

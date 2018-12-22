@@ -1,4 +1,4 @@
-name: advent-of-code-e2018
+name: advent2018
 version: 0.1.0.0
 github: "bartfrenk/advent-of-code-e2018"
 license: BSD3
@@ -16,7 +16,7 @@ default-extensions:
   - MultiWayIf
   - RecordWildCards
   - NamedFieldPuns
-
+  - TupleSections
 
 dependencies:
 - base >= 4.7 && < 5
@@ -28,21 +28,28 @@ dependencies:
 - vector
 - strict
 
-
-
 library:
   source-dirs: src
 
+ghc-options:
+  - -threaded
+  - -rtsopts
+  - -with-rtsopts=-N
+
 executables:
-  advent-of-code-e2018-exe:
+  day12:
     main: Main.hs
-    source-dirs: app
+    source-dirs: app/day12
     ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - advent-of-code-e2018
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+  day13:
+    main: Main.hs
+    source-dirs: app/day15
+  day15:
+    main: Main.hs
+    source-dirs: app/day15
 
 tests:
   advent-of-code-e2018-test:
