@@ -52,7 +52,7 @@ number = read <$> many1 digit
 instruction :: Parsec String () (Instruction Int)
 instruction = Instruction <$> number' <*> number' <*> number' <*> number'
   where
-    -- TODO: probably less surprising if we don't parse ending newlines
+    -- It is suprising that spaces also parses ending newlines.
     number' = number <* spaces
 
 -- |Parser for a single sample.
@@ -65,17 +65,8 @@ sample = Sample <$> before <*> instruction <*> after
     string' s = string s <* spaces
     wrapSquareBrackets p = do char '['; x <- p; char ']'; pure x
 
--- |Parse a single sample from the string.
-parseSample :: Monad m => String -> ExceptT ParseError m Sample
-parseSample = liftEither . runParser sample () ""
-
--- |Parse multiple samples, as given in the input file. Stop when hitting
--- multiple newlines.
-parseSampleList :: Monad m => String -> ExceptT ParseError m [Sample]
-parseSampleList = liftEither . runParser sampleList () ""
-  where
-    sampleList = manyTill (sample <* newline) $ do _ <- newline; _ <- newline; pure ()
-
+-- |Parse the samples and instructions from string. The string should be read
+-- directly from the input file.
 parseInput :: Monad m => String -> ExceptT ParseError m ([Sample], [Instruction Int])
 parseInput = liftEither . runParser parser () ""
   where
@@ -151,6 +142,8 @@ findSingleEncoding samples =
   in traverse select $ Map.fromList (recur initial)
 
   where
+    -- If an instruction number maps to a single op code then eliminate that op
+    -- code from the candidates of all other instruction numbers.
     recur :: [(Int, [OpCode])] -> [(Int, [OpCode])]
     recur enc =
       let found = ((==) 1 . length . snd) `filter` enc
@@ -164,36 +157,13 @@ findSingleEncoding samples =
     select [e] = Just e
     select _ = Nothing
 
-main :: IO ()
-main = putStrLn "Day 16"
-
 contents :: IO String
 contents = readFile "res/input-16.txt"
 
-samples :: IO [Sample]
-samples = (runExceptT $ liftIO contents >>= parseSampleList) >>= \case
-    Right samples -> pure $ samples
-
-x :: IO (Either ParseError Sample)
-x = runExceptT $ parseSample sampleString1
-
-y :: IO (Either ParseError [OpCode])
-y = runExceptT $ possibleOpCodes <$> parseSample sampleString2
-
-z :: IO (Maybe (Map Int OpCode))
-z = (runExceptT $ liftIO contents >>= parseSampleList) >>= \case
-    Right samples -> pure $ findSingleEncoding samples
-
-u :: IO (Either ParseError [Instruction Int])
-u = (runExceptT $ snd <$> (liftIO contents >>= parseInput))
-
-coherentEncodings :: IO (Map Int [OpCode])
-coherentEncodings = (runExceptT $ liftIO contents >>= parseSampleList) >>= \case
-    Right samples -> pure $ findCoherentEncodings samples
-
-answerA :: IO Int
-answerA = (runExceptT $ liftIO contents >>= parseSampleList) >>= \case
-    Right samples -> pure $ length (listAmbiguousSamples 3 samples)
+answerA :: IO (Either ParseError Int)
+answerA = runExceptT $ do
+  (samples, _) <- liftIO contents >>= parseInput
+  pure $ length (listAmbiguousSamples 3 samples)
 
 answerB :: IO (Either ParseError Integer)
 answerB = runExceptT $ do
@@ -205,14 +175,7 @@ answerB = runExceptT $ do
   where
     input = Vector.fromList [0, 0, 0, 0]
 
-sampleString1 = unlines
-  [ "Before: [1, 1, 1, 0]"
-  , "4 1 0 0"
-  , "After:  [1, 1, 1, 0]"
-  ]
-
-sampleString2 = unlines
-  [ "Before: [3, 2, 1, 1]"
-  , "9 2 1 2"
-  , "After:  [3, 2, 2, 1]"
-  ]
+main :: IO ()
+main = do
+  answerA >>= putStrLn . ("Part A: " ++) . show . (\case Right x -> x)
+  answerB >>= putStrLn . ("Part B: " ++) . show . (\case Right x -> x)
