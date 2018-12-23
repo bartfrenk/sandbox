@@ -21,10 +21,10 @@ import           Debug.Trace
 data Race = Elf | Goblin deriving (Eq, Show)
 
 data Creature = Creature
-  { crRace      :: Race
-  , crHitpoints :: Int
-  , crAttack    :: Int
-  , crSymbol    :: Char
+  { crRace      :: !Race
+  , crHitpoints :: !Int
+  , crAttack    :: !Int
+  , crSymbol    :: !Char
   } deriving (Eq, Show)
 
 data Point = Point Int Int deriving (Eq)
@@ -59,8 +59,8 @@ hasRace caves race point =
 
 -- |Data structure that holds the caves. Should be fairly fast to modify squares.
 data Caves = Caves
-  { squares :: Vector Square
-  , width   :: Int } deriving (Eq)
+  { squares :: !(Vector Square)
+  , width   :: !Int } deriving (Eq)
 
 instance Show Caves where
   show caves@(Caves{..}) =
@@ -162,7 +162,7 @@ shortestBranches pred tree = descend [([], tree)]
     value (RoseTree v _) = v
 
 shortestPaths :: (Ord a, Show a) => a -> (a -> [a]) -> (a -> Bool) -> [[a]]
-shortestPaths start gen pred = descend Set.empty [[start]]
+shortestPaths start gen pred = descend (Set.fromList [start]) [[start]]
   where
     descend !visited [] = []
     descend !visited !paths =
@@ -399,5 +399,5 @@ db = getRound 15 . getRight <$> readCaves "res/input-15.txt"
 main :: IO ()
 main = do
   caves <- getRight <$> readCaves "res/input-15.txt"
-  let caves' = getRound 14 caves
+  let caves' = getRound 18 caves
   putStrLn $ show caves'
