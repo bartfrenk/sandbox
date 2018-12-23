@@ -10,6 +10,26 @@ import           Prelude               hiding (readFile)
 import           System.IO.Strict      (readFile)
 import           Text.Parsec
 
+main :: IO ()
+main = do
+  answerA >>= putStrLn . ("Part A: " ++) . show . (\case Right x -> x)
+  answerB >>= putStrLn . ("Part B: " ++) . show . (\case Right x -> x)
+
+answerA :: IO (Either ParseError Int)
+answerA = runExceptT $ do
+  (samples, _) <- liftIO contents >>= parseInput
+  pure $ length (listAmbiguousSamples 3 samples)
+
+answerB :: IO (Either ParseError Integer)
+answerB = runExceptT $ do
+  (samples, instructions) <- liftIO contents >>= parseInput
+  case findSingleEncoding samples of
+    Just enc -> pure $
+      let instructions' = fmap ((Map.!) enc) <$> instructions
+      in (foldl' (flip exec) initial instructions') ! 0
+  where
+    initial = Vector.fromList [0, 0, 0, 0]
+
 data OpCode
   = ADDR
   | ADDI
@@ -159,23 +179,3 @@ findSingleEncoding samples =
 
 contents :: IO String
 contents = readFile "res/input-16.txt"
-
-answerA :: IO (Either ParseError Int)
-answerA = runExceptT $ do
-  (samples, _) <- liftIO contents >>= parseInput
-  pure $ length (listAmbiguousSamples 3 samples)
-
-answerB :: IO (Either ParseError Integer)
-answerB = runExceptT $ do
-  (samples, instructions) <- liftIO contents >>= parseInput
-  case findSingleEncoding samples of
-    Just enc -> pure $
-      let instructions' = fmap ((Map.!) enc) <$> instructions
-      in (foldl' (flip exec) input instructions') ! 0
-  where
-    input = Vector.fromList [0, 0, 0, 0]
-
-main :: IO ()
-main = do
-  answerA >>= putStrLn . ("Part A: " ++) . show . (\case Right x -> x)
-  answerB >>= putStrLn . ("Part B: " ++) . show . (\case Right x -> x)
