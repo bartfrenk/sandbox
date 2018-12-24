@@ -1,6 +1,5 @@
-name: haskell-articles
+name: haskell-misc
 version: 0.1.0.0
-github: "bartfrenk/haskell-articles"
 license: BSD3
 author: "Bart Frenk"
 maintainer: "bart.frenk@gmail.com"
@@ -20,20 +19,14 @@ dependencies:
 - mtl
 - random
 - cryptonite
+- binary
+- memory
+- safe
+- containers
+- hspec
 
 ghc-options:
   - -Wall
 
 library:
   source-dirs: src
-
-tests:
-  the-essence-of-dataflow-programming-test:
-    main: Spec.hs
-    source-dirs: test
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
-    dependencies:
-      - haskell-articles
