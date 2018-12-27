@@ -18,6 +18,7 @@ default-extensions:
   - NamedFieldPuns
   - DeriveFunctor
   - TupleSections
+  - FlexibleInstances
 
 dependencies:
 - base >= 4.7 && < 5
@@ -28,6 +29,7 @@ dependencies:
 - time
 - vector
 - strict
+- primitive
 
 library:
   source-dirs: src
@@ -36,6 +38,7 @@ _exe-ghc-options: &exe-ghc-options
   - -threaded
   - -rtsopts
   - -with-rtsopts=-N
+#  - -Wall
 
 executables:
   day12:
@@ -53,6 +56,10 @@ executables:
   day16:
     main: Main.hs
     source-dirs: app/day16
+    ghc-options: *exe-ghc-options
+  day17:
+    main: Main.hs
+    source-dirs: app/day17
     ghc-options: *exe-ghc-options
 
 tests:
