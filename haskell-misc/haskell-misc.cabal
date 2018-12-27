@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6ba92e2c448a0fb644b64a2a7f484c839c3c12a94a4099fb5a031de657e9f080
+-- hash: 3661bda8bd733cab6f2a4cac7fe3ad223ff20fd6ebb72ccd9cb556c2fcb6976e
 
 name:           haskell-misc
 version:        0.1.0.0
@@ -18,6 +18,7 @@ extra-source-files:
 
 library
   exposed-modules:
+      MutableData
       Snark
       Strategy
       TheEssenceOfDataflowProgramming
@@ -37,6 +38,8 @@ library
     , hspec
     , memory
     , mtl
+    , primitive
     , random
     , safe
+    , vector
   default-language: Haskell2010

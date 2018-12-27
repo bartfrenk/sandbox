@@ -24,6 +24,8 @@ dependencies:
 - safe
 - containers
 - hspec
+- primitive
+- vector
 
 ghc-options:
   - -Wall
