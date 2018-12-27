@@ -20,7 +20,8 @@ import           System.Random
 
 type Hash = Digest SHA256
 
--- |Type class for data that can be (cryptographically) hashed.
+-- |Type class for data that can be (cryptographically) hashed. Mainly to avoid
+-- specifying the (important) detail of which hash function to use.
 class HasHash a where
   hash :: a -> Hash
 
@@ -43,7 +44,9 @@ instance HasHash (PublicKey) where
 
 -- |In this simple case, a transaction always transfers a complete coin. It has
 -- a recipient, identified by its public key, and a spender, which is the one
--- that created the signature using its own private key.
+-- that created the signature using its own private key. The
+-- 'prevTransactionHash` is empty when this transaction is the generating
+-- transaction for a coin.
 data Transaction = Transaction
   { recipient           :: PublicKey
   , signature           :: Signature
