@@ -51,14 +51,6 @@ fn matches(state: &State, n: usize) -> bool {
         state.score[n - 5] == 8 && state.score[n - 6] == 5;
 }
 
-fn matches2(state: &State) -> bool {
-    let n = state.score.len();
-    return n >= 5 && state.score[n - 1] == 4 && state.score[n - 2] == 1 &&
-        state.score[n - 3] == 4 && state.score[n - 4] == 9 && state.score[n - 5] == 5;
-}
-
-
-
 fn exercise14b() {
     let mut state = State {
         score: vec![3, 7],
@@ -76,5 +68,6 @@ fn exercise14b() {
 }
 
 fn main() {
+    exercise14a();
     exercise14b();
 }
