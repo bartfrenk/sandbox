@@ -1,8 +1,5 @@
-(defproject advent-of-code-2018 "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
-  :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+(defproject advent-of-code-2018 "0.1.0"
+  :description "Solutions to Advent of Code 2018"
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [clj-time "0.15.0"]
                  [quil "2.5.0"]])
