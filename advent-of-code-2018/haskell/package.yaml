@@ -1,12 +1,9 @@
 name: advent2018
 version: 0.1.0.0
-github: "bartfrenk/advent-of-code-e2018"
-license: BSD3
 author: "Bart Frenk"
 
 description: >-
-  Please see the README on GitHub at
-  <https://github.com/githubuser/advent-of-code-e2018#readme>
+  Solutions to Advent of Code 2018
 
 default-extensions:
   - ConstraintKinds
@@ -21,54 +18,51 @@ default-extensions:
   - FlexibleInstances
 
 dependencies:
-- base >= 4.7 && < 5
-- text
-- parsec
-- mtl
-- containers
-- time
-- vector
-- strict
-- primitive
-
-library:
-  source-dirs: src
+  - base >= 4.7 && < 5
+  - text
+  - parsec
+  - mtl
+  - containers
+  - time
+  - vector
+  - strict
+  - primitive
 
 _exe-ghc-options: &exe-ghc-options
   - -threaded
   - -rtsopts
   - -with-rtsopts=-N
-#  - -Wall
 
 executables:
+  day01:
+    main: Main.hs
+    source-dirs: src/day01
+    ghc-options: *exe-ghc-options
+  day02:
+    main: Main.hs
+    source-dirs: src/day02
+    ghc-options: *exe-ghc-options
+  day03:
+    main: Main.hs
+    source-dirs: src/day03
+    ghc-options: *exe-ghc-options
   day12:
     main: Main.hs
-    source-dirs: app/day12
+    source-dirs: src/day12
     ghc-options: *exe-ghc-options
   day13:
     main: Main.hs
-    source-dirs: app/day15
+    source-dirs: src/day15
     ghc-options: *exe-ghc-options
   day15:
     main: Main.hs
-    source-dirs: app/day15
+    source-dirs: src/day15
     ghc-options: *exe-ghc-options
   day16:
     main: Main.hs
-    source-dirs: app/day16
+    source-dirs: src/day16
     ghc-options: *exe-ghc-options
   day17:
     main: Main.hs
-    source-dirs: app/day17
+    source-dirs: src/day17
     ghc-options: *exe-ghc-options
-
-tests:
-  advent-of-code-e2018-test:
-    main: Spec.hs
-    source-dirs: test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - advent-of-code-e2018

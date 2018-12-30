@@ -1,10 +1,3 @@
--- Essentially a recursive solution, but awkwardly encoded using a list of
--- active points, instead of letting the runtime keep track of the work still to
--- be done.
-
--- Works, but not too happy with the final form. Maybe rewrite in actual
--- recursive form for comparison.
-
 {-# LANGUAGE ScopedTypeVariables #-}
 import           Prelude                     hiding (readFile)
 
@@ -22,6 +15,15 @@ import           System.IO.Strict            (readFile)
 import           Text.Parsec                 hiding (State)
 
 import           Debug.Trace
+
+-- Essentially a recursive solution, but awkwardly encoded using a list of
+-- active points, instead of letting the runtime keep track of the work still to
+-- be done.
+
+-- Works, but not too happy with the final form. Maybe rewrite in actual
+-- recursive form for comparison.
+
+
 
 main :: IO ()
 main = readFile "res/input-17.txt" & fmap parseGround >>= \case
