@@ -146,7 +146,7 @@ type Rule x = U x -> x
 -- Is it so that any indexed structure has a comonad instance.
 
 -- class Indexed i x | x -> i where
-  
+
 
 
 -- From:
