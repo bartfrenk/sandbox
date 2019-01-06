@@ -1,4 +1,4 @@
-module Zeta.Lexer where
+module Zeta.Parser.Lexer where
 
 import Data.String (fromString)
 import           Control.Monad

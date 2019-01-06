@@ -32,6 +32,8 @@ default-extensions:
   - TupleSections
   - FlexibleInstances
   - OverloadedStrings
+  - GeneralizedNewtypeDeriving
+  - BangPatterns
 
 library:
   source-dirs: src
@@ -40,6 +42,9 @@ library:
     - indents
     - containers
     - mtl
+    - microlens-platform
+    - microlens-th
+    - microlens-mtl
 
 executables:
   zeta-repl:

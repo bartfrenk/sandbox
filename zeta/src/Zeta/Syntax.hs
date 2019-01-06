@@ -5,7 +5,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Map.Strict (Map)
 
-newtype Name = Name Text deriving (Eq, Show)
+newtype Name = Name Text deriving (Eq, Ord, Show)
 
 instance IsString Name where
   fromString = Name . T.pack
@@ -26,8 +26,11 @@ data Statement
   deriving (Eq, Show)
 
 data Expr
-  = Application Name (Map Name Expr)
-  | BinaryOp BinaryOp Expr Expr
-  | IntLiteral Int
-  | Resolver Name
+  = BinaryOp BinaryOp Expr Expr
+  | Literal Literal
+  deriving (Eq, Show)
+
+data Literal
+  = I Int
+  | B Bool
   deriving (Eq, Show)
