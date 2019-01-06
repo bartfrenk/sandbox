@@ -4,11 +4,13 @@ module Comonads.Types where
 -- Definitions and basic properties
 -- ================================
 
+
+-- TODO: swap the arguments of extend to be in line with the definition in Control.Comonad
 -- Comonads are dual to monads.
 class Functor w => Comonad w where
   extract :: w a -> a
   duplicate :: w a -> w (w a)
-  duplicate x = extend x id
+  duplicate = extend id
   -- One intuition here is that 'extend' transforms a map from contextual value
   -- to contextless values (out of context), to a map from contextual values to
   -- contextual values. This intuition does not seem to apply to the instance
@@ -17,8 +19,8 @@ class Functor w => Comonad w where
   -- Note that the definition of extend in 'Control.Comonad' switches the
   -- arguments. This is more in line with the intuition above, i.e., 'extend f'
   -- is the transformed map. The laws also become easier to state.
-  extend :: w a -> (w a -> b) -> w b
-  extend x f = f `fmap` duplicate x
+  extend :: (w a -> b) -> w a -> w b
+  extend f = (fmap f) . duplicate
 
 class Category cat where
   identity :: cat a a
@@ -29,7 +31,7 @@ data CoKleisli w a b = CoKleisli (w a -> b)
 instance Comonad w => Category (CoKleisli w) where
   identity = CoKleisli extract
   composition (CoKleisli g) (CoKleisli f) = CoKleisli $
-    \x -> g (extend x f)
+    g . extend f
 
 {--
 co-Kleisli composition for comonads looks like:
@@ -47,18 +49,18 @@ The laws derived from the category laws for CoKleisli are:
 --}
 
 prop_leftIdentity ::  (Eq b, Comonad w) => (w a -> b) -> w a -> Bool
-prop_leftIdentity f x = extract (extend x f) == f x
+prop_leftIdentity f x = extract (extend f x) == f x
 
 prop_rightIdentity :: (Eq b, Comonad w) => (w a -> b) -> w a -> Bool
-prop_rightIdentity f x = f (extend x extract) == f x
+prop_rightIdentity f x = f (extend extract x) == f x
 
 prop_rightIdentity' :: (Eq (w a), Comonad w) => w a -> Bool
-prop_rightIdentity' x = extend x extract == x
+prop_rightIdentity' x = extend extract x == x
 
 -- This does not really seem right.
 prop_associativity :: (Eq d, Comonad w) => (w c -> d) -> (w b -> c) -> (w a -> b) -> w a -> Bool
 prop_associativity h g f x =
-  h (extend x (\z -> g (extend z f))) == h (extend (extend x f) g)
+  h (extend (\z -> g (extend f z)) x) == h (extend g (extend f x))
 
 -- Intermezzo: Loeb's Theorem
 -- ==========================
@@ -111,7 +113,7 @@ instance Comonad ((,) c) where
   -- Make the implicit parameter explicit.
   duplicate (c, a) = (c, (c, a))
   -- Change the value in the comonad depending on the implicit parameter.
-  extend (c, a) f = (c, f (c, a))
+  extend f (c, a) = (c, f (c, a))
 
 -- Automatons
 -- ----------
@@ -170,7 +172,7 @@ instance Monoid r => Comonad ((->) r) where
   -- Allow extra context.
   duplicate f r1 r2 = f (r1 `mappend` r2)
   -- ?? Not too sure what would be an intuitive description here.
-  extend f u r = u (\r' -> f (r `mappend` r))
+  extend u f r = u (\r' -> f (r `mappend` r))
 
 
 -- The iterator pattern
@@ -194,7 +196,7 @@ instance Comonad Iterator where
   extract (a :< _) = a
   duplicate (a :< rest) = (a :< rest) :< duplicate rest
   -- Iterator a -> (Iterator a -> b) -> Iterator b
-  extend iterator retrieve = retrieve `fmap` duplicate iterator
+  extend retrieve iterator = retrieve `fmap` duplicate iterator
 
 next :: Iterator a -> Iterator a
 next (_ :< rest) = rest
@@ -213,7 +215,7 @@ instance Functor (Store r) where
 instance Comonad (Store r) where
   extract (Store (r, h)) = h r
   duplicate (Store (r, h)) = Store (r, \r' -> Store (r', h))
-  extend (Store (r, h)) f = Store (r, \r' -> f $ Store (r', h))
+  extend f (Store (r, h)) = Store (r, \r' -> f $ Store (r', h))
 
 
 
