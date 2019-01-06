@@ -1,0 +1,64 @@
+name: zeta
+version: 0.1.0.0
+github: "bartfrenk/zeta"
+license: BSD3
+author: "Bart Frenk"
+maintainer: "bart.frenk@gmail.com"
+copyright: "2019 Bart Frenk"
+
+extra-source-files:
+  - README.md
+  - ChangeLog.md
+
+description: |
+  Please see the README on GitHub at <https://github.com/bartfrenk/zeta#readme>
+
+dependencies:
+  - base >= 4.7 && < 5
+  - text
+
+  # TODO: Move to zeta-test
+  - hspec
+
+default-extensions:
+  - ConstraintKinds
+  - FlexibleContexts
+  - LambdaCase
+  - BangPatterns
+  - MultiWayIf
+  - RecordWildCards
+  - NamedFieldPuns
+  - DeriveFunctor
+  - TupleSections
+  - FlexibleInstances
+  - OverloadedStrings
+
+library:
+  source-dirs: src
+  dependencies:
+    - parsec
+    - indents
+    - containers
+    - mtl
+
+executables:
+  zeta-repl:
+    main: Main.hs
+    source-dirs: app/repl
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - zeta
+
+tests:
+  zeta-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - zeta
