@@ -1,0 +1,14 @@
+
+reductions:
+  - resolver: resolver(urn:lemonpi:context:location:city)
+    params: []
+    to: |
+      let city = resolver(urn:lemonpi:context:location:city)
+      let ip-address = resolver(urn:lemonpi:context:ip-address)
+      grab(city) or city(ip-address=ip-address())
+  - resolver: resolver(urn:lemonpi:context:request:ip-address)
+    params: []
+    to: |
+      let ip-address = resolver(urn:lemonpi:context:request:ip-address)
+      grab(ip-address)
+      
