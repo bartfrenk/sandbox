@@ -2,6 +2,7 @@
 module Zeta.Syntax where
 
 import           Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 import           Data.String     (IsString (..))
 import           Data.Text       (Text)
 import qualified Data.Text       as T
@@ -39,7 +40,16 @@ data Expr
   | Literal Literal
   | Var Name
   | Resolver URN
+  | App Expr ArgList
   deriving (Eq, Show)
+
+newtype ArgList = ArgList (Map Name Expr)
+  deriving (Eq, Show)
+
+instance IsList ArgList where
+  type Item ArgList = (Name, Expr)
+  fromList = ArgList . Map.fromList
+  toList (ArgList ps) = Map.toList ps
 
 data Literal
   = I Int

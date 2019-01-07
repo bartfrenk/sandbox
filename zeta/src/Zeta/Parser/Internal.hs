@@ -6,6 +6,7 @@ import           Data.Text             as T
 import           Text.Parsec
 import           Text.Parsec.Indent
 import Text.Parsec.Expr
+import qualified Data.Map as Map
 
 
 import           Zeta.Parser.Lexer
@@ -33,7 +34,7 @@ binding =
   (Binding <$> (name <* assign) <*> expr)
 
 term :: CharStream s => Parser s Expr
-term = parens expr <|> intLiteral <|> resolver <|> variable <?> "term"
+term = parens expr <|> intLiteral <|> app <|> resolver <|> variable <?> "term"
 
 intLiteral :: CharStream s => Parser s Expr
 intLiteral = Literal . I <$> integer
@@ -43,6 +44,13 @@ variable = Var <$> name
 
 resolver :: CharStream s => Parser s Expr
 resolver = Resolver <$> (try $ reserved "resolver" *> parens urn)
+
+app :: CharStream s => Parser s Expr
+app = try (App <$> (resolver <|> variable) <*> parens argList)
+
+argList :: CharStream s => Parser s ArgList
+argList = ArgList . Map.fromList <$> (arg `sepBy` symbol ",")
+  where arg = (,) <$> (name <* symbol "=") <*> expr
 
 expr :: CharStream s => Parser s Expr
 expr = buildExpressionParser table term <?> "expression"

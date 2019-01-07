@@ -2,8 +2,9 @@ module Zeta.ParserSpec where
 
 import Test.Hspec
 
+import qualified Data.Map as Map
 import Data.Either (isLeft)
-import Data.Text as T
+import qualified Data.Text as T
 import Zeta.Parser
 import Zeta.Syntax
 
@@ -55,3 +56,21 @@ spec = do
 
     it "resolver with empty URN" $
       parse "let x = resolver(urn:)" `shouldSatisfy` isLeft
+
+    it "raw resolver application on empty argument list" $
+      parse "x = resolver(urn:a:b)()" `shouldBe` Right
+      [ Assignment "x" (App (Resolver ["a", "b"]) []) ]
+
+    it "raw resolver application with single argument" $
+      parse "x = resolver(urn:a:b)(c=1)" `shouldBe` Right
+      [ Assignment "x" (App (Resolver ["a", "b"]) [(Name "c", Literal $ I 1)])]
+
+    it "raw resolver application with multiple arguments" $
+      parse "x = resolver(urn:a:b)(c=1, d = 2)" `shouldBe` Right
+      [ Assignment "x" (App (Resolver ["a", "b"])
+                        [ (Name "c", Literal $ I 1)
+                        , (Name "d", Literal $ I 2)
+                        ])]
+
+    it "integer application fails" $
+      parse "x = 1(c=1)" `shouldSatisfy` isLeft
