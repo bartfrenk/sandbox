@@ -2,6 +2,7 @@ module Zeta.ParserSpec where
 
 import Test.Hspec
 
+import Data.Either (isLeft)
 import Data.Text as T
 import Zeta.Parser
 import Zeta.Syntax
@@ -44,3 +45,13 @@ spec = do
       parse "x = y" `shouldBe` Right
       [ Assignment "x" (Var "y")
       ]
+
+    it "resolver with valid URN" $
+      parse "let x = resolver(urn:context:x)" `shouldBe` Right
+      [ Binding "x" (Resolver ["context", "x"]) ]
+
+    it "resolver without URN" $
+      parse "let x = resolver()" `shouldSatisfy` isLeft
+
+    it "resolver with empty URN" $
+      parse "let x = resolver(urn:)" `shouldSatisfy` isLeft

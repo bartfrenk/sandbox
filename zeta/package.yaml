@@ -34,6 +34,7 @@ default-extensions:
   - OverloadedStrings
   - GeneralizedNewtypeDeriving
   - BangPatterns
+  - OverloadedLists
 
 library:
   source-dirs: src

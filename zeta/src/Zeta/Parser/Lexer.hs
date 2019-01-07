@@ -3,9 +3,9 @@ module Zeta.Parser.Lexer where
 import Data.String (fromString)
 import           Control.Monad
 import           Data.Text         (Text)
+import qualified Data.Text as T
 import           Text.Parsec       hiding (spaces)
 import qualified Text.Parsec       as Parsec
-import qualified Text.Parsec.Token as T
 
 import           Zeta.Syntax
 
@@ -45,10 +45,19 @@ word :: MonadParse s m => ParserT s m String
 word = (:) <$> letter <*> many alphaNum
 
 isReservedName :: String -> Bool
-isReservedName = (`elem` ["let"])
+isReservedName = (`elem` reservedNames)
+  where
+    reservedNames :: [String]
+    reservedNames = ["let", "resolver"]
 
 integer :: MonadParse s m => ParserT s m Int
 integer = lexeme $ read <$> many1 digit
 
 reserved :: MonadParse s m => String -> ParserT s m String
 reserved = symbol
+
+urn :: MonadParse s m => ParserT s m URN
+urn = do
+  segments <- string "urn:" *> sepBy1 segment (char ':')
+  if null segments then fail "invalid URN" else pure $ URN segments
+  where segment = T.pack <$> many1 (noneOf ":()")
