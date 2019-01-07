@@ -55,9 +55,9 @@ expr :: CharStream s => Parser s Expr
 expr = buildExpressionParser table term <?> "expression"
   where
     table = [[ Infix (op "==" >> (pure $ BinaryOp OpEQ)) AssocLeft
-             , Infix (op "<"  >> (pure $ BinaryOp OpLT)) AssocLeft
-             , Infix (op ">"  >> (pure $ BinaryOp OpGT)) AssocLeft
              , Infix (op "<=" >> (pure $ BinaryOp OpLE)) AssocLeft
+             , Infix (op "<"  >> (pure $ BinaryOp OpLT)) AssocLeft
              , Infix (op ">=" >> (pure $ BinaryOp OpGE)) AssocLeft
+             , Infix (op ">"  >> (pure $ BinaryOp OpGT)) AssocLeft
              ]]
 

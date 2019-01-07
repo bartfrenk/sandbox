@@ -1,12 +1,11 @@
 module Zeta.ParserSpec where
 
-import Test.Hspec
+import           Test.Hspec
 
-import qualified Data.Map as Map
-import Data.Either (isLeft)
-import qualified Data.Text as T
-import Zeta.Parser
-import Zeta.Syntax
+import           Data.Either (isLeft)
+import qualified Data.Text   as T
+import           Zeta.Parser
+import           Zeta.Syntax
 
 spec :: Spec
 spec = do
@@ -41,6 +40,16 @@ spec = do
                          (BinaryOp OpEQ (Literal (I 3)) (Literal (I 4)))
                          (Literal (I 5)))
       ]
+
+    it "inequality comparison" $
+      parse "x = 3 <= 4" `shouldBe` Right
+      [ Assignment "x" (BinaryOp OpLE (Literal $ I 3) (Literal $ I 4))]
+
+    it "parenthesized expressions" $
+      parse "x = 3 == (4 <= 5)" `shouldBe` Right
+      [ Assignment "x" (BinaryOp OpEQ
+                         (Literal $ I 3)
+                         (BinaryOp OpLE (Literal $ I 4) (Literal $ I 5)))]
 
     it "variable" $
       parse "x = y" `shouldBe` Right
