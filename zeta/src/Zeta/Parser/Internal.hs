@@ -33,10 +33,13 @@ binding =
   (Binding <$> (name <* assign) <*> expr)
 
 term :: CharStream s => Parser s Expr
-term = parens expr <|> intLiteral <?> "term"
+term = parens expr <|> intLiteral <|> variable <?> "term"
 
 intLiteral :: CharStream s => Parser s Expr
 intLiteral = Literal . I <$> integer
+
+variable :: CharStream s => Parser s Expr
+variable = Var <$> name
 
 expr :: CharStream s => Parser s Expr
 expr = buildExpressionParser table term <?> "expression"

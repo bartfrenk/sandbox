@@ -28,6 +28,7 @@ data Statement
 data Expr
   = BinaryOp BinaryOp Expr Expr
   | Literal Literal
+  | Var Name
   deriving (Eq, Show)
 
 data Literal

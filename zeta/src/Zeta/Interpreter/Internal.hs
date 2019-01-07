@@ -65,12 +65,20 @@ registerBinding name expr = do
     Nothing -> bindings %= Map.insert name expr
     Just _ -> throwError $ RuntimeError $ "duplicate binding for " ++ show name
 
+getBinding :: Monad m => Name -> InterpreterT m Expr
+getBinding name = do
+  bs <- gets _bindings
+  case bs !? name of
+    Nothing -> throwError $ RuntimeError $ "unbound variable " ++ show name
+    Just expr -> pure expr
+
 interpretExpr :: Monad m => Expr -> InterpreterT m Expr
 interpretExpr (BinaryOp op e1 e2) = do
   e1' <- interpretExpr e1; e2' <- interpretExpr e2
   case (e1', e2') of
     (Literal lit1, Literal lit2) -> interpretBinaryOp op lit1 lit2
 interpretExpr x@(Literal _) = pure x
+interpretExpr (Var name) = getBinding name
 
 interpretBinaryOp :: Monad m => BinaryOp -> Literal -> Literal -> InterpreterT m Expr
 interpretBinaryOp op (I n1) (I n2) = pure (Literal $ B (n1 `fn` n2))

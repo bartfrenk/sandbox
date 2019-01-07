@@ -40,3 +40,7 @@ spec = do
                          (Literal (I 5)))
       ]
 
+    it "variable" $
+      parse "x = y" `shouldBe` Right
+      [ Assignment "x" (Var "y")
+      ]
