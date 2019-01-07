@@ -1,11 +1,10 @@
 module Zeta.Parser.Lexer where
 
-import Data.String (fromString)
 import           Control.Monad
-import           Data.Text         (Text)
-import qualified Data.Text as T
-import           Text.Parsec       hiding (spaces)
-import qualified Text.Parsec       as Parsec
+import           Data.String   (fromString)
+import qualified Data.Text     as T
+import           Text.Parsec   hiding (spaces)
+import qualified Text.Parsec   as Parsec
 
 import           Zeta.Syntax
 

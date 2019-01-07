@@ -9,19 +9,14 @@ way out, by evaluating the replaced expressions with an empty map of bindings,
 see `withStateT`.
 -}
 
+import           Control.Monad.Except
+import           Control.Monad.State
+import           Data.Map.Strict       (Map, (!?))
+import qualified Data.Map.Strict       as Map
+import           Lens.Micro.Mtl
+import           Lens.Micro.TH
 
-
-import Data.Map.Strict (Map, (!?))
-import qualified Data.Map.Strict as Map
-import Data.Text (Text)
-import Data.Functor.Identity
-import Control.Monad.Except
-import Control.Monad.State
-import Lens.Micro.Mtl
-import Lens.Micro.TH
-
-
-import Zeta.Syntax
+import           Zeta.Syntax
 
 data RuntimeError
   = RuntimeError String
@@ -77,8 +72,12 @@ interpretExpr (BinaryOp op e1 e2) = do
   e1' <- interpretExpr e1; e2' <- interpretExpr e2
   case (e1', e2') of
     (Literal lit1, Literal lit2) -> interpretBinaryOp op lit1 lit2
+    _ -> throwError $ RuntimeError "cannot reduce operands"
 interpretExpr x@(Literal _) = pure x
 interpretExpr (Var name) = getBinding name
+interpretExpr expr@(Resolver _) = pure expr
+interpretExpr (App _ _) = undefined
+
 
 interpretBinaryOp :: Monad m => BinaryOp -> Literal -> Literal -> InterpreterT m Expr
 interpretBinaryOp op (I n1) (I n2) = pure (Literal $ B (n1 `fn` n2))

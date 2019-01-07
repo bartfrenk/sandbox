@@ -1,12 +1,11 @@
 module Zeta.Parser.Internal where
 
-import           Control.Monad.Reader
 import           Data.Functor.Identity
+import qualified Data.Map              as Map
 import           Data.Text             as T
 import           Text.Parsec
+import           Text.Parsec.Expr
 import           Text.Parsec.Indent
-import Text.Parsec.Expr
-import qualified Data.Map as Map
 
 
 import           Zeta.Parser.Lexer

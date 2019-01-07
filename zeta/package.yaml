@@ -16,7 +16,7 @@ description: |
 dependencies:
   - base >= 4.7 && < 5
   - text
-
+  - containers
   # TODO: Move to zeta-test
   - hspec
 
@@ -36,12 +36,15 @@ default-extensions:
   - BangPatterns
   - OverloadedLists
 
+ghc-options:
+  - -Wall
+  - -fno-warn-name-shadowing
+
 library:
   source-dirs: src
   dependencies:
     - parsec
     - indents
-    - containers
     - mtl
     - microlens-platform
     - microlens-th
