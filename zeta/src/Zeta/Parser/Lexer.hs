@@ -16,7 +16,7 @@ spaces :: MonadParse s m => ParserT s m ()
 spaces = void $ many $ oneOf " \t"
 
 whitespace :: MonadParse s m => ParserT s m ()
-whitespace = void $ Parsec.spaces
+whitespace = void Parsec.spaces
 
 lexeme :: MonadParse s m => ParserT s m a -> ParserT s m a
 lexeme p = p <* whitespace

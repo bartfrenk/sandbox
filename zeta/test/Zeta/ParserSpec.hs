@@ -8,7 +8,7 @@ import           Zeta.Parser
 import           Zeta.Syntax
 
 spec :: Spec
-spec = do
+spec =
 
   describe "parse" $ do
 

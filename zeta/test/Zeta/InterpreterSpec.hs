@@ -8,7 +8,7 @@ import           Zeta.Interpreter
 import           Zeta.Syntax
 
 spec :: Spec
-spec = do
+spec =
 
   describe "interpret" $ do
 

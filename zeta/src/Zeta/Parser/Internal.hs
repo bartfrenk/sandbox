@@ -42,7 +42,7 @@ variable :: CharStream s => Parser s Expr
 variable = Var <$> name
 
 resolver :: CharStream s => Parser s Expr
-resolver = Resolver <$> (try $ reserved "resolver" *> parens urn)
+resolver = Resolver <$> try (reserved "resolver" *> parens urn)
 
 app :: CharStream s => Parser s Expr
 app = try (App <$> (resolver <|> variable) <*> parens argList)
@@ -54,10 +54,8 @@ argList = ArgList . Map.fromList <$> (arg `sepBy` symbol ",")
 expr :: CharStream s => Parser s Expr
 expr = buildExpressionParser table term <?> "expression"
   where
-    table = [[ Infix (op "==" >> (pure $ BinaryOp OpEQ)) AssocLeft
-             , Infix (op "<=" >> (pure $ BinaryOp OpLE)) AssocLeft
-             , Infix (op "<"  >> (pure $ BinaryOp OpLT)) AssocLeft
-             , Infix (op ">=" >> (pure $ BinaryOp OpGE)) AssocLeft
-             , Infix (op ">"  >> (pure $ BinaryOp OpGT)) AssocLeft
-             ]]
-
+    table =
+      [[comp "==" OpEQ,
+        comp "<=" OpLE, comp "<" OpLT,
+        comp ">=" OpGE, comp ">" OpGT]]
+    comp s d = Infix (op s >> pure (BinaryOp d)) AssocLeft
