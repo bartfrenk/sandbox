@@ -47,7 +47,7 @@ resolver = Resolver <$> try (reserved "resolver" *> parens urn)
 app :: CharStream s => Parser s Expr
 app = try (App <$> (resolver <|> variable) <*> parens argList)
 
-argList :: CharStream s => Parser s ArgList
+argList :: CharStream s => Parser s (ArgList Expr)
 argList = ArgList . Map.fromList <$> (arg `sepBy` symbol ",")
   where arg = (,) <$> (name <* symbol "=") <*> expr
 
