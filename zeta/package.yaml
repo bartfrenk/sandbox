@@ -35,6 +35,7 @@ default-extensions:
   - GeneralizedNewtypeDeriving
   - BangPatterns
   - OverloadedLists
+  - TypeFamilies
 
 ghc-options:
   - -Wall
@@ -49,6 +50,7 @@ library:
     - microlens-platform
     - microlens-th
     - microlens-mtl
+    - microlens
 
 executables:
   zeta-repl:

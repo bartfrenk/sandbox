@@ -1,117 +1,72 @@
-{-# LANGUAGE TemplateHaskell #-}
 module Zeta.Interpreter.Internal where
 
-{-
-Note that the existence of user-defined bindings together with the notion of
-replacing resolver invocations with AST pieces defined by the interpreter
-requires some care, since we do not want bindings to conflict. There is an easy
-way out, by evaluating the replaced expressions with an empty map of bindings,
-see `withStateT`.
--}
-
-import           Control.Monad.Except
-import           Control.Monad.Reader
+import           Control.Monad.Except   (throwError)
 import           Control.Monad.State
-import           Data.Map.Strict      (Map, (!?))
-import qualified Data.Map.Strict      as Map
-import           Data.Set             (Set)
-import qualified Data.Set             as Set
-import           Lens.Micro.Mtl
-import           Lens.Micro.TH
-
+import           Data.Map               ((!?))
+import qualified Data.Map               as Map
+import           Lens.Micro
+import           Lens.Micro.Mtl         hiding (assign)
+import           Zeta.Interpreter.Types
 import           Zeta.Syntax
 
-data RuntimeError
-  = RuntimeError String
-  deriving (Eq, Show)
 
-type Signature = (URN, Set Name)
-
-type Substitutions = Map Signature Expr
-
-data Runtime = Runtime
-  { _substitutions :: Substitutions }
-
-emptyRuntime :: Runtime
-emptyRuntime = Runtime { _substitutions = Map.empty }
-
-data Env = Env
-  { _bindings :: !(Map Name Expr)
-  }
-
-makeLenses ''Runtime
-makeLenses ''Env
-
-newtype InterpreterT m a = InterpreterT
-   { runInterpreterT :: StateT Env (ExceptT RuntimeError (ReaderT Runtime m)) a
-   } deriving (Functor, Applicative, Monad, MonadError RuntimeError,
-               MonadState Env, MonadReader Runtime)
-
-interpret :: Monad m => Runtime -> Program -> m (Either RuntimeError Program)
-interpret runtime = flip runReaderT runtime . runExceptT .
-                    flip evalStateT env . runInterpreterT . interpretProgram
+execute :: Domain m => Expr -> InterpreterT m Expr
+execute literal@(Literal _) = pure literal
+execute external@(External _) = pure external
+execute (Binding bs expr) =
+  let unwrapped = runInterpreterT (execute expr)
+  in InterpreterT $ withStateT (over bindings (`Map.union` bs)) unwrapped
+execute (App fn args) = do
+  fn' <- execute fn
+  args' <- traverse execute args
+  case fn' of
+    External urn -> do
+      externals' <- view externals
+      let signature = (urn, Map.keysSet args')
+      case externals' !?  signature of
+        Nothing ->
+          throwError $ MissingExternal signature
+        Just expr ->
+          let unwrapped = runInterpreterT (execute expr)
+          in InterpreterT $ withStateT (set bindings args') unwrapped
+    expr ->
+      throwError $ InvalidFunction expr
+execute (Fetch urn args) = do
+  args' <- traverse execute args
+  case traverse maybeLiteral args' of
+    Nothing ->
+      throwError $ InvalidFetch urn args'
+    Just literals -> do
+      fetch' <- view fetch
+      lift (fetch' urn literals)
   where
-    env = Env { _bindings = Map.empty }
+    maybeLiteral (Literal lit) = Just lit
+    maybeLiteral _ = Nothing
+execute (Assignment name expr) = do
+  expr' <- execute expr
+  assign name expr'
+  pure $ Literal None
+execute (BinaryOp op expr1 expr2) = do
+  expr1' <- execute expr1
+  expr2' <- execute expr2
+  case (expr1', expr2') of
+    (Literal lit1, Literal lit2) ->
+      Literal <$> operation op lit1 lit2
+    (Literal _, _) ->
+      throwError $ UnevaluatedExpression expr2'
+    (_, _) ->
+      throwError $ UnevaluatedExpression expr1'
+execute (Var name) = do
+  bindings' <- use bindings
+  case bindings' !? name of
+    Nothing ->
+      throwError $ NonExistentBinding name
+    Just expr -> execute expr
+execute (Sequence expr1 expr2) =
+  execute expr1 >> execute expr2
 
-interpretProgram :: Monad m => Program -> InterpreterT m Program
-interpretProgram = (concat <$>) . mapM interpretStatement
+interpret :: Domain m => Expr -> InterpreterT m Expr
+interpret expr = undefined
 
-interpretStatement :: Monad m => Statement -> InterpreterT m Program
-interpretStatement (Assignment name expr) = do
-  expr' <- interpretExpr expr
-  pure [Assignment name expr']
--- There is no notion of scope for bindings. A binding exists in all statements
--- that follow it.
-interpretStatement (Binding name expr) = do
-  expr' <- interpretExpr expr
-  registerBinding name expr'
-  pure []
-
-registerBinding :: Monad m => Name -> Expr -> InterpreterT m ()
-registerBinding name expr = do
-  bs <- gets _bindings
-  case bs !? name of
-    Nothing -> bindings %= Map.insert name expr
-    Just _ -> throwError $ RuntimeError $ "duplicate binding for " ++ show name
-
-getBinding :: Monad m => Name -> InterpreterT m Expr
-getBinding name = do
-  bs <- gets _bindings
-  case bs !? name of
-    Nothing -> throwError $ RuntimeError $ "unbound variable " ++ show name
-    Just expr -> pure expr
-
-interpretExpr :: Monad m => Expr -> InterpreterT m Expr
-interpretExpr (BinaryOp op e1 e2) = do
-  e1' <- interpretExpr e1; e2' <- interpretExpr e2
-  case (e1', e2') of
-    (Literal lit1, Literal lit2) -> interpretBinaryOp op lit1 lit2
-    _ -> throwError $ RuntimeError "cannot reduce operands"
-interpretExpr x@(Literal _) = pure x
-interpretExpr (Var name) = getBinding name
-interpretExpr expr@(Resolver _) = pure expr
-interpretExpr (App (Resolver urn) argList) = do
-  argList' <- interpretExpr `mapM` argList
-  let names = argNames argList
-  subst <- view substitutions
-  case subst !? (urn, names) of
-    Nothing -> throwError $ RuntimeError ("resolver " ++ show urn ++ " unavailable")
-    Just expr -> interpretInScope (toBindings argList') expr
-interpretExpr (App var@(Var _) argList) = do
-  var' <- interpretExpr var
-  interpretExpr (App var' argList)
-interpretExpr _ = throwError $ RuntimeError "cannot apply non-resolvers"
-
-interpretInScope :: Monad m => Map Name Expr -> Expr -> InterpreterT m Expr
-interpretInScope local expr = InterpreterT $ withStateT
-  (const $ Env local) (runInterpreterT (interpretExpr expr))
-
-interpretBinaryOp :: Monad m => BinaryOp -> Literal -> Literal -> InterpreterT m Expr
-interpretBinaryOp op (I n1) (I n2) = pure (Literal $ B (n1 `fn` n2))
-  where fn = case op of
-          OpEQ -> (==)
-          OpLE -> (<=)
-          OpGE -> (>=)
-          OpGT -> (>)
-          OpLT -> (<)
-interpretBinaryOp _ _ _ = throwError $ RuntimeError "invalid operation"
+operation :: Domain m => BinaryOp -> Literal -> Literal -> InterpreterT m Literal
+operation = undefined
