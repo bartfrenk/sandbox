@@ -17,8 +17,10 @@ dependencies:
   - base >= 4.7 && < 5
   - text
   - containers
+  - mtl
   # TODO: Move to zeta-test
   - hspec
+  - QuickCheck
 
 default-extensions:
   - ConstraintKinds
@@ -35,7 +37,9 @@ default-extensions:
   - GeneralizedNewtypeDeriving
   - BangPatterns
   - OverloadedLists
+  - StandaloneDeriving
   - TypeFamilies
+  - StrictData
 
 ghc-options:
   - -Wall
@@ -46,7 +50,6 @@ library:
   dependencies:
     - parsec
     - indents
-    - mtl
     - microlens-platform
     - microlens-th
     - microlens-mtl

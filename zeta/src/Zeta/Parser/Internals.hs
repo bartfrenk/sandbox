@@ -1,4 +1,4 @@
-module Zeta.Parser.Internal where
+module Zeta.Parser.Internals where
 
 -- import           Data.Functor.Identity
 

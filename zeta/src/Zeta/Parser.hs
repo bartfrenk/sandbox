@@ -2,4 +2,4 @@ module Zeta.Parser
   ( parse
   ) where
 
-import Zeta.Parser.Internal
+import Zeta.Parser.Internals

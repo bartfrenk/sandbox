@@ -8,9 +8,9 @@ import           Zeta.Parser
 import           Zeta.Syntax
 
 spec :: Spec
-spec = undefined
-
-  -- describe "parse" $ do
+spec =
+  describe "parse" $
+    it "parses" pending
 
   --   it "assignments" $
   --     parse "x = 1" `shouldBe` Right [Assignment "x" (Literal (I 1))]

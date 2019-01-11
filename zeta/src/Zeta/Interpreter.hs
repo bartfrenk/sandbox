@@ -1,6 +1,12 @@
 module Zeta.Interpreter
   ( interpret
-  , RuntimeError
+  , execute
+  , RuntimeError(..)
+  , Domain(..)
+  , RuntimeEnv(..)
   ) where
 
-import Zeta.Interpreter.Internal
+import           Zeta.Interpreter.Internals
+import           Zeta.Interpreter.Types
+
+
