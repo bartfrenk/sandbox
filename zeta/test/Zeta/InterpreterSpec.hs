@@ -4,7 +4,6 @@ import           Control.Monad.Writer.Strict
 import           Data.Functor.Identity
 import           Data.Map                    (Map)
 import qualified Data.Map                    as Map
-import           Data.String
 import           Test.Hspec
 import           Test.QuickCheck
 

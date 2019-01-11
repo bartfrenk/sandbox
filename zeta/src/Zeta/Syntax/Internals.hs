@@ -1,18 +1,20 @@
 module Zeta.Syntax.Internals where
 
-import           Prelude
+import           Data.Hashable
 import           Data.Map.Strict (Map)
 import           Data.String     (IsString (..))
 import           Data.Text       (Text)
 import qualified Data.Text       as T
 import           GHC.Exts        (IsList (..))
+import           GHC.Generics
+import           Prelude
 
-newtype Name = Name Text deriving (Eq, Ord, Show)
+newtype Name = Name Text deriving (Eq, Ord, Show, Hashable)
 
 instance IsString Name where
   fromString = Name . T.pack
 
-newtype URN = URN [Text] deriving (Eq, Ord, Show)
+newtype URN = URN [Text] deriving (Eq, Ord, Show, Hashable)
 
 instance IsList URN where
   type Item URN = Text
@@ -35,11 +37,13 @@ instance IsString Expr where
   fromString = Literal . fromString
 
 data Literal
-  = I Int
+  = None
+  | I Int
   | B Bool
   | S Text
-  | None
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show, Generic)
+
+instance Hashable Literal
 
 instance IsString Literal where
   fromString = S . T.pack

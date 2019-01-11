@@ -40,6 +40,9 @@ default-extensions:
   - StandaloneDeriving
   - TypeFamilies
   - StrictData
+  - GADTs
+  - DeriveGeneric
+  - MultiParamTypeClasses
 
 ghc-options:
   - -Wall
@@ -54,6 +57,9 @@ library:
     - microlens-th
     - microlens-mtl
     - microlens
+    - haxl
+    - hashable
+    - transformers
 
 executables:
   zeta-repl:
