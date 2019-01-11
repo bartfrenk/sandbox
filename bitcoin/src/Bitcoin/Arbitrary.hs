@@ -16,7 +16,7 @@ import           Test.QuickCheck.Gen
 
 
 instance MonadRandom Gen where
-    getRandomBytes size = BA.take size <$> BA.pack <$> listOf arbitrary
+    getRandomBytes size = BA.take size . BA.pack <$> listOf arbitrary
 
 instance Arbitrary PK.SecretKey where
   -- Only return when we've found a byte string that maps to a private key.
@@ -39,7 +39,7 @@ instance Arbitrary PK.PublicKey where
 instance H.HashAlgorithm a => Arbitrary (H.Digest a) where
   arbitrary = do
     size <- arbitrary
-    bytes <- (getRandomBytes size :: Gen BA.Bytes)
+    bytes <- getRandomBytes size :: Gen BA.Bytes
     pure $ H.hash bytes
 
 instance Arbitrary Transaction where
@@ -89,7 +89,7 @@ blockChainWithTransactions txs = do
 -- |Generates a partition into consecutive sublists of a list.
 listPartition :: [a] -> Gen [[a]]
 listPartition xs = do
-  (n, split) <- liftM2 (,) (choose (0, (length xs - 1))) chooseAny
+  (n, split) <- liftM2 (,) (choose (0, length xs - 1)) chooseAny
   if split
     then (take n xs:) <$> listPartition (drop n xs)
     else pure [xs]

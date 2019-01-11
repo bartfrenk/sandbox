@@ -13,7 +13,7 @@ import           Test.QuickCheck
 
 main :: IO ()
 main = hspec $ modifyMaxSize (const 100) $ do
-  describe "sign and verify" $ do
+  describe "sign and verify" $
 
     it "verifies transactions signed with the correct public key" $
       property $ \tx sk ->
@@ -21,15 +21,15 @@ main = hspec $ modifyMaxSize (const 100) $ do
           signature = I.sign sk (tx :: Transaction)
       in I.verify pk tx signature
 
-  describe "createTransaction and isValidTransaction" $ do
+  describe "createTransaction and isValidTransaction" $
 
     it "creates valid transactions" $ property $ \(secretKey, publicKey) ->
       forAll (transactionTo publicKey) $ \prevTx -> property $ \recipient ->
       isValidTransaction (createTransaction (Just prevTx) secretKey recipient)
 
-  describe "mine" $ do
+  describe "mine" $
 
-    it "generates a nonce that solves the hash puzzle" $ pending
+    it "generates a nonce that solves the hash puzzle" pending
 
   describe "isValidBlockChain" $ do
 
