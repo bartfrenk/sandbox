@@ -18,9 +18,17 @@ dependencies:
   - text
   - containers
   - mtl
+  - haxl
+  # Web requests
+  - http-client
+  - http-client-tls
+  - http-conduit
   # TODO: Move to zeta-test
   - hspec
   - QuickCheck
+  - hashable
+  - lens-aeson
+  - bytestring
 
 default-extensions:
   - ConstraintKinds
@@ -57,8 +65,6 @@ library:
     - microlens-th
     - microlens-mtl
     - microlens
-    - haxl
-    - hashable
     - transformers
 
 executables:
@@ -82,3 +88,4 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - zeta
+
