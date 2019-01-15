@@ -1,16 +1,16 @@
-module Zeta.Interpreter.Haxl.MockRequest where
+module Zeta.Interpreter.MockRequest where
 
-import Control.Monad.Writer
-import Data.Map.Strict (Map, (!?))
-import qualified Data.Map.Strict as Map
+import           Control.Monad.Writer
+import           Data.Map.Strict        (Map, (!?))
+import qualified Data.Map.Strict        as Map
 
-import Data.Hashable
-import Haxl.Core
+import           Data.Hashable
+import           Haxl.Core
 
-import Zeta.Syntax
-import Zeta.Interpreter hiding (execute)
-import qualified Zeta.Interpreter as I
+import           Zeta.Interpreter       hiding (execute)
+import qualified Zeta.Interpreter       as I
 import qualified Zeta.Interpreter.Types as I
+import           Zeta.Syntax
 
 -- |Request to fetch expressions from an in memory-lookup table
 data MockRequest a where

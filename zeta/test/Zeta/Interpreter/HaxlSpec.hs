@@ -4,7 +4,7 @@ import Test.Hspec
 
 import Zeta.Syntax
 
-import qualified Zeta.Interpreter.Haxl.MockRequest as Mock
+import qualified Zeta.Interpreter.MockRequest as Mock
 
 spec :: Spec
 spec =
