@@ -1,0 +1,92 @@
+-- This file has been generated from package.yaml by hpack version 0.28.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: f24a009bcfaede6be20bc5f716ee18a240d9dacd6402afbc049b66d4c5ea8630
+
+name:           scraping
+version:        0.1.0.0
+author:         Bart Frenk
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+extra-source-files:
+    ChangeLog.md
+    README.md
+
+library
+  exposed-modules:
+      Lib
+      Scratch
+  other-modules:
+      Paths_scraping
+  hs-source-dirs:
+      src
+  default-extensions: ConstraintKinds FlexibleContexts LambdaCase BangPatterns MultiWayIf RecordWildCards NamedFieldPuns DeriveFunctor TupleSections FlexibleInstances OverloadedStrings GeneralizedNewtypeDeriving BangPatterns OverloadedLists
+  build-depends:
+      base >=4.7 && <5
+    , conduit
+    , containers
+    , haxl
+    , html-conduit
+    , http-client
+    , http-client-tls
+    , http-conduit
+    , mtl
+    , resourcet
+    , tagsoup
+    , text
+    , xml-conduit
+  default-language: Haskell2010
+
+executable scraping-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_scraping
+  hs-source-dirs:
+      app
+  default-extensions: ConstraintKinds FlexibleContexts LambdaCase BangPatterns MultiWayIf RecordWildCards NamedFieldPuns DeriveFunctor TupleSections FlexibleInstances OverloadedStrings GeneralizedNewtypeDeriving BangPatterns OverloadedLists
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , conduit
+    , containers
+    , haxl
+    , html-conduit
+    , http-client
+    , http-client-tls
+    , http-conduit
+    , mtl
+    , resourcet
+    , scraping
+    , tagsoup
+    , text
+    , xml-conduit
+  default-language: Haskell2010
+
+test-suite scraping-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_scraping
+  hs-source-dirs:
+      test
+  default-extensions: ConstraintKinds FlexibleContexts LambdaCase BangPatterns MultiWayIf RecordWildCards NamedFieldPuns DeriveFunctor TupleSections FlexibleInstances OverloadedStrings GeneralizedNewtypeDeriving BangPatterns OverloadedLists
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , conduit
+    , containers
+    , haxl
+    , html-conduit
+    , http-client
+    , http-client-tls
+    , http-conduit
+    , mtl
+    , resourcet
+    , scraping
+    , tagsoup
+    , text
+    , xml-conduit
+  default-language: Haskell2010

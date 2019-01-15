@@ -1,0 +1,64 @@
+name: scraping
+version: 0.1.0.0
+license: BSD3
+author: "Bart Frenk"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+dependencies:
+  - base >= 4.7 && < 5
+  - haxl
+  - mtl
+  - containers
+  - http-client-tls
+  - http-client
+  - tagsoup
+  - xml-conduit
+  - http-conduit
+  - html-conduit
+  - conduit
+  - resourcet
+  - text
+
+default-extensions:
+  - ConstraintKinds
+  - FlexibleContexts
+  - LambdaCase
+  - BangPatterns
+  - MultiWayIf
+  - RecordWildCards
+  - NamedFieldPuns
+  - DeriveFunctor
+  - TupleSections
+  - FlexibleInstances
+  - OverloadedStrings
+  - GeneralizedNewtypeDeriving
+  - BangPatterns
+  - OverloadedLists
+
+library:
+  source-dirs: src
+
+executables:
+  scraping-exe:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - scraping
+
+tests:
+  scraping-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - scraping
