@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f24a009bcfaede6be20bc5f716ee18a240d9dacd6402afbc049b66d4c5ea8630
+-- hash: 16ea1a3308d9764f5b6d1f237f5e4478a3665436d82e57dedd5b7df3e5a3194c
 
 name:           scraping
 version:        0.1.0.0
@@ -35,9 +35,11 @@ library
     , http-conduit
     , mtl
     , resourcet
-    , tagsoup
+    , taggy
+    , taggy-lens
     , text
     , xml-conduit
+    , xml-html-conduit-lens
   default-language: Haskell2010
 
 executable scraping-exe
@@ -60,9 +62,11 @@ executable scraping-exe
     , mtl
     , resourcet
     , scraping
-    , tagsoup
+    , taggy
+    , taggy-lens
     , text
     , xml-conduit
+    , xml-html-conduit-lens
   default-language: Haskell2010
 
 test-suite scraping-test
@@ -86,7 +90,9 @@ test-suite scraping-test
     , mtl
     , resourcet
     , scraping
-    , tagsoup
+    , taggy
+    , taggy-lens
     , text
     , xml-conduit
+    , xml-html-conduit-lens
   default-language: Haskell2010

@@ -12,15 +12,20 @@ dependencies:
   - haxl
   - mtl
   - containers
-  - http-client-tls
-  - http-client
-  - tagsoup
-  - xml-conduit
-  - http-conduit
-  - html-conduit
   - conduit
   - resourcet
   - text
+  # HTTP client libraries
+  - http-client-tls
+  - http-client
+  - http-conduit
+  # Parsing XML and HTML
+  - xml-conduit
+  - html-conduit
+  - taggy
+  # Lenses
+  - taggy-lens
+  - xml-html-conduit-lens
 
 default-extensions:
   - ConstraintKinds

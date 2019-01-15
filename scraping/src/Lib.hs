@@ -6,7 +6,7 @@ import           Control.Monad.Trans.Resource (runResourceT)
 import           Data.Conduit                 (($$+-))
 import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS      (tlsManagerSettings)
-import           Network.HTTP.Conduit as C
+import qualified Network.HTTP.Conduit         as C
 import           Text.XML
 
 someFunc :: IO ()
@@ -25,7 +25,7 @@ test = do
   runExceptT $ search "hello" manager
 
 
-x = C.httpLbs
+
 {-
 Three APIs are relevant for network request (leaving out wrappers such as
 wreq)
