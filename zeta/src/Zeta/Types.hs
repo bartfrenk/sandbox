@@ -1,4 +1,12 @@
-module Zeta.Types where
+module Zeta.Types
+  ( TemplateString
+  , fromString
+  , toTemplateString
+  , placeholders
+  , asFunction
+  , TemplateParam(..)
+  , URN
+  ) where
 
 import Data.Validation
 import           Data.Aeson      (FromJSON (..), withText)
@@ -32,34 +40,42 @@ instance FromJSON URN where
 
 -- |A template string, where placeholders are indicated by wrapping them in
 -- curly braces.
-newtype TemplateString = TemplateString [Segment]
+newtype TemplateString p = TemplateString [Segment p]
+  deriving (Eq)
 
-instance Show TemplateString where
+instance Show p => Show (TemplateString p) where
   show (TemplateString segments) = T.unpack $ T.concat $ show' <$> segments
-    where show' (Placeholder txt) = "{" <> txt <> "}"
+    where show' (Placeholder txt) = "{" <> T.pack (show txt) <> "}"
           show' (Literal txt) = txt
+
+instance IsString p => FromJSON (TemplateString p) where
+  parseJSON = withText "TemplateString" $ \t ->
+    case toTemplateString t of
+      Left _ -> fail "not a valid template string"
+      Right ts -> pure ts
 
 -- |Allow interpretation of string literals as template string. Note that this
 -- might fail, for example '{}' is not a valid template string.
-instance IsString TemplateString where
+instance IsString p => IsString (TemplateString p) where
   fromString s = case toTemplateString (T.pack s) of
     Left _ -> error "not a valid template string"
     Right ts -> ts
 
-data Segment = Placeholder Text | Literal Text
+data Segment a = Placeholder a | Literal Text
+  deriving (Eq)
 
 -- |Creates a template string. Prefer this one over 'fromString' for explicit
 -- failures.
-toTemplateString :: Text -> Either ParseError TemplateString
+toTemplateString :: IsString p => Text -> Either ParseError (TemplateString p)
 toTemplateString = runParser parser () ""
   where
     parser = TemplateString <$> many (placeholder <|> literal)
     literal = Literal . T.pack <$> many1 (noneOf "{}")
-    placeholder = Placeholder . T.pack <$>
+    placeholder = Placeholder . fromString <$>
       (char '{' *> many1 (noneOf "}") <* char '}')
 
 -- |Extracts the placeholder names from the template string.
-placeholders :: TemplateString -> Set Text
+placeholders :: Ord p => TemplateString p -> Set p
 placeholders (TemplateString segments) =
   segments &
   fmap (\case Placeholder txt -> Just txt; _ -> Nothing) &
@@ -68,12 +84,16 @@ placeholders (TemplateString segments) =
 
 -- |Makes the template string into a function. The placeholder names are the
 -- keys of the argument map.
-asFunction :: TemplateString -> Map Text Text -> Validation [Text] Text
+asFunction :: (TemplateParam a, Ord p)
+           => TemplateString p -> Map p a -> Validation [p] Text
 asFunction (TemplateString segments) args =
   T.concat <$> (interpolate `traverse` segments)
   where
     interpolate (Literal txt) = Success txt
     interpolate (Placeholder name) = case args !? name of
-      Just txt -> Success txt
+      Just txt -> maybe (Failure [name]) Success (asParam txt)
       Nothing -> Failure [name]
+
+class TemplateParam a where
+  asParam :: a -> Maybe Text
 

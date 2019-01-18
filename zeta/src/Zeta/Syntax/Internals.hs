@@ -8,7 +8,7 @@ import qualified Data.Text       as T
 import           GHC.Generics
 import           Prelude
 
-import Zeta.Types
+import           Zeta.Types
 
 newtype Name = Name Text deriving (Eq, Ord, Show, Hashable)
 
@@ -41,6 +41,12 @@ instance Hashable Literal
 
 instance IsString Literal where
   fromString = S . T.pack
+
+instance TemplateParam Literal where
+  asParam None = Nothing
+  asParam (I n) = Just (T.pack $ show n)
+  asParam (B b) = Just (T.pack $ show b)
+  asParam (S t) = Just t
 
 data BinaryOp
   = LessThan

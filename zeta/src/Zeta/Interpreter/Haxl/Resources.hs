@@ -9,20 +9,12 @@ import           Data.Set
 import           Data.String
 import           Data.Text         (Text)
 import qualified Data.Text         as T
+import           Data.Validation
 import           GHC.Generics      (Generic)
 import           Lens.Micro.Extras
 
 import           Zeta.Syntax
 import           Zeta.Types
-
-instance IsString TemplateString where
-  fromString = TemplateString . T.pack
-
-instance Show TemplateString where
-  show (TemplateString t) = T.unpack t
-
-instance FromJSON TemplateString where
-  parseJSON = fmap TemplateString . parseJSON
 
 -- TODO: This probably needs to move to the type checker when it exists.
 data ContextType = TyString | TyBool | TyInteger
@@ -62,7 +54,7 @@ makeSelector SelectorDescription{..} = Selector $ \repr ->
         in make <$> preview (getter . ty) val
 
 data ResourceDescription = ResourceDescription
-  { uriTemplate :: TemplateString
+  { uriTemplate :: TemplateString Name
   , contexts    :: [SelectorDescription]
   } deriving (Eq, Show, Generic)
 
@@ -73,7 +65,7 @@ instance FromJSON ResourceDescription where
 newtype URI = URI Text
 
 data Resource a = Resource
-  { makeUri   :: Map Name Literal -> URI
+  { makeUri   :: Map Name Literal -> Validation [Name] URI
   , selectors :: Map URN (Selector a)
   , signature :: Set Name
   }
@@ -81,27 +73,14 @@ data Resource a = Resource
 makeFetches :: Resource a -> Map (URN, Set Name) (Resource a)
 makeFetches res = undefined
 
-
 makeResource :: ToJSON a => ResourceDescription -> Resource a
 makeResource ResourceDescription{..} =
-  let (makeUri, signature) = fromTemplateString
-  in Resource
-  { makeUri = fromTemplateString
+  Resource
+  { makeUri = fmap URI . asFunction uriTemplate
   , selectors = Map.fromList (fromSelectorDescription <$> contexts)
-  , signature = signature
+  , signature = placeholders uriTemplate
   }
   where
-
-    fromTemplateString =
-      let TemplateString txt = uriTemplate
-          !segments = T.split (`elem` ("{}" :: String)) txt
-      in \args -> URI $ T.concat $ flip fmap segments $ \s ->
-        maybe s toTemplateParam (args !? Name s)
-
-    toTemplateParam None = "None"
-    toTemplateParam (I n) = T.pack $ show n
-    toTemplateParam (B b) = T.pack $ show b
-    toTemplateParam (S t) = t
 
     fromSelectorDescription desc@SelectorDescription{..} = (id, makeSelector desc)
 
