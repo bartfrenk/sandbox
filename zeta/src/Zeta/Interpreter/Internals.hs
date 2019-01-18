@@ -8,8 +8,10 @@ import           Data.Map               ((!?))
 import qualified Data.Map               as Map
 import           Lens.Micro
 import           Lens.Micro.Mtl         hiding (assign)
+
 import           Zeta.Interpreter.Types
 import           Zeta.Syntax
+
 
 
 -- |Interprets expression in runtime with modified state, without changing the

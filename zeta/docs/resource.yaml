@@ -1,0 +1,11 @@
+uri: "http://api.ipstack.com/{ip-address}?access_key=2b5b300141b464d17f33178463bc2456"
+contexts:
+  - id: urn:city
+    path: [city]
+    type: string
+  - id: urn:country
+    path: [country_name]
+    type: string
+  - id: urn:is_eu
+    path: [location, is_eu]
+    type: bool

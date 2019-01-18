@@ -1,23 +1,24 @@
 module Zeta.Interpreter.Haxl.WebRequest where
 
-import           Data.Aeson.Lens
+import           Data.Aeson
 import           Data.ByteString.Lazy
 import           Data.Hashable
-import           Data.Map.Strict        (Map, (!), (!?))
-import qualified Data.Map.Strict        as Map
+import           Data.Map.Strict                 (Map, (!), (!?))
+import qualified Data.Map.Strict                 as Map
+import           Data.Set                        (Set)
+import           Data.Yaml
 import           Haxl.Core
 import           Lens.Micro.Extras
 import           Network.HTTP.Client
 
-import           Zeta.Interpreter       hiding (execute)
-import qualified Zeta.Interpreter       as I
-import qualified Zeta.Interpreter.Types as I
-import           Zeta.Syntax
-
 import           Control.Monad.Writer
+import qualified Debug.Trace                     as D
 
-
-type URL = String
+import           Zeta.Interpreter                hiding (execute)
+import qualified Zeta.Interpreter                as I
+import           Zeta.Interpreter.Haxl.Resources
+import qualified Zeta.Interpreter.Types          as I
+import           Zeta.Syntax
 
 data WebRequest a where
   WebRequest :: URN -> Map Name Literal -> WebRequest (Maybe Expr)
@@ -28,27 +29,14 @@ deriving instance Show (WebRequest a)
 instance Hashable (WebRequest a) where
   hashWithSalt s (WebRequest urn args) = hashWithSalt s (urn, Map.toList args)
 
-ipstack :: Resource
-ipstack = Resource
-  { url = const "http://api.ipstack.com/82.171.74.76?access_key=2b5b300141b464d17f33178463bc2456"
-  , contexts = [(["city"],  fmap (Literal . S) . preview (key "city" . _String))]
-  }
-
 instance ShowP WebRequest where
   showp = show
 
 instance DataSourceName WebRequest where
   dataSourceName _ = "WebRequest"
 
-type Selector = ByteString -> Maybe Expr
-
-data Resource = Resource
-  { url      :: Map Name Literal -> URL
-  , contexts :: Map URN Selector
-  }
-
 newtype WebRequestEnv = WebRequestEnv
-  { fetches :: Map (URN, Map Name Literal) Resource
+  { fetches :: Map (URN, Set Name) Resource
   }
 
 instance StateKey WebRequest where
@@ -65,18 +53,22 @@ instance DataSource WebRequestEnv WebRequest where
 
       processFetch :: BlockedFetch WebRequest -> IO ()
       processFetch (BlockedFetch (WebRequest urn args) var) =
-        case fetches env !? (urn, args) of
+        D.trace (show (urn, args)) $
+        case fetches env !? (urn, Map.keysSet args) of
           Nothing -> putSuccess var Nothing
           Just resource -> case contexts resource !? urn of
             Nothing -> putSuccess var Nothing
             Just selector -> do
               result <- fetchResource (manager state) resource args
-              putSuccess var (selector result)
+              case result of
+                Right val -> D.trace (show val) $ putSuccess var (selector val)
+                Left _ -> putSuccess var Nothing
 
-fetchResource :: Manager -> Resource -> Map Name Literal -> IO ByteString
-fetchResource manager Resource{url} args = do
+fetchResource :: Manager -> Resource -> Map Name Literal -> IO (Either String Value)
+fetchResource manager Resource{url} args = D.trace (show (url args)) $ do
   request <- parseRequest $ url args
-  responseBody <$> httpLbs request manager
+  body <- responseBody <$> httpLbs request manager
+  pure $ eitherDecode body
 
 -- ==== TEST (remove later)
 
@@ -116,18 +108,28 @@ execute externals env expr = liftIO $ do
   runHaxl haxlEnv $ runWriterT (I.execute rtEnv expr)
 
 
-test = do
-  mgr <- newManager defaultManagerSettings
-  resource <- fetchResource mgr ipstack []
-  pure $ (contexts ipstack ! ["city"]) resource
+-- test = do
+--   mgr <- newManager defaultManagerSettings
+--   resource <- fetchResource mgr ipstack []
+--   pure $ (contexts ipstack ! ["city"]) resource
 
 test2 expr = do
-  execute [] (WebRequestEnv [((["city"], []), ipstack)]) expr
+  Right ipstack <- decodeFileEither "docs/resource.yaml"
+  execute [] (WebRequestEnv
+              [ ((["city"], ["ip-address"]), ipstack)
+              , ((["country"], ["ip-address"]), ipstack)
+              , ((["is_eu"], ["ip-address"]), ipstack)
+              ]) expr
 
+test3 = do
+  Right ipstack <- decodeFileEither "docs/resource.yaml"
+  print (url ipstack [("ip-address", "8.8.8.8")])
 
 x :: IO (Either RuntimeError Expr, Assignments)
 x = test2 (Assignment "x" (Literal $ I 0))
 
 
+
+
 y :: IO (Either RuntimeError Expr, Assignments)
-y = test2 (Fetch ["city"] [])
+y = test2 (Fetch ["is_eu"] [("ip-address", "82.171.74.76")])

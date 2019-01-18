@@ -23,12 +23,18 @@ dependencies:
   - http-client
   - http-client-tls
   - http-conduit
+  - network-uri
   # TODO: Move to zeta-test
   - hspec
   - QuickCheck
   - hashable
   - lens-aeson
   - bytestring
+  - yaml
+  - aeson
+  - vector
+  - safe
+  - exceptions
 
 default-extensions:
   - ConstraintKinds

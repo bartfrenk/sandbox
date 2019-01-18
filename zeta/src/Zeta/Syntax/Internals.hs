@@ -5,21 +5,15 @@ import           Data.Map.Strict (Map)
 import           Data.String     (IsString (..))
 import           Data.Text       (Text)
 import qualified Data.Text       as T
-import           GHC.Exts        (IsList (..))
 import           GHC.Generics
 import           Prelude
+
+import Zeta.Types
 
 newtype Name = Name Text deriving (Eq, Ord, Show, Hashable)
 
 instance IsString Name where
   fromString = Name . T.pack
-
-newtype URN = URN [Text] deriving (Eq, Ord, Show, Hashable)
-
-instance IsList URN where
-  type Item URN = Text
-  fromList = URN
-  toList (URN ts) = ts
 
 data Expr
   = Literal Literal
