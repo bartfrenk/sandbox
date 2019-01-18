@@ -3,28 +3,26 @@ module Zeta.Interpreter.Haxl.Resource where
 
 import           Data.Aeson
 import           Data.Aeson.Lens
-import           Data.Map.Strict     (Map, (!?))
-import qualified Data.Map.Strict     as Map
+import           Data.Map.Strict   (Map, (!?))
+import qualified Data.Map.Strict   as Map
+import           Data.Set
 import           Data.String
-import           Data.Text           (Text)
-import qualified Data.Text           as T
-import           GHC.Generics        (Generic)
+import           Data.Text         (Text)
+import qualified Data.Text         as T
+import           GHC.Generics      (Generic)
 import           Lens.Micro.Extras
 
 import           Zeta.Syntax
 import           Zeta.Types
 
-newtype UriTemplate = UriTemplate Text
-  deriving (Eq, Ord)
+instance IsString TemplateString where
+  fromString = TemplateString . T.pack
 
-instance IsString UriTemplate where
-  fromString = UriTemplate . T.pack
+instance Show TemplateString where
+  show (TemplateString t) = T.unpack t
 
-instance Show UriTemplate where
-  show (UriTemplate t) = T.unpack t
-
-instance FromJSON UriTemplate where
-  parseJSON = fmap UriTemplate . parseJSON
+instance FromJSON TemplateString where
+  parseJSON = fmap TemplateString . parseJSON
 
 -- TODO: This probably needs to move to the type checker when it exists.
 data ContextType = TyString | TyBool | TyInteger
@@ -64,7 +62,7 @@ makeSelector SelectorDescription{..} = Selector $ \repr ->
         in make <$> preview (getter . ty) val
 
 data ResourceDescription = ResourceDescription
-  { uriTemplate :: UriTemplate
+  { uriTemplate :: TemplateString
   , contexts    :: [SelectorDescription]
   } deriving (Eq, Show, Generic)
 
@@ -77,17 +75,25 @@ newtype URI = URI Text
 data Resource a = Resource
   { makeUri   :: Map Name Literal -> URI
   , selectors :: Map URN (Selector a)
+  , signature :: Set Name
   }
 
+makeFetches :: Resource a -> Map (URN, Set Name) (Resource a)
+makeFetches res = undefined
+
+
 makeResource :: ToJSON a => ResourceDescription -> Resource a
-makeResource ResourceDescription{..} = Resource
-  { makeUri = fromUriTemplate,
-    selectors = Map.fromList (fromSelectorDescription <$> contexts)
+makeResource ResourceDescription{..} =
+  let (makeUri, signature) = fromTemplateString
+  in Resource
+  { makeUri = fromTemplateString
+  , selectors = Map.fromList (fromSelectorDescription <$> contexts)
+  , signature = signature
   }
   where
 
-    fromUriTemplate =
-      let UriTemplate txt = uriTemplate
+    fromTemplateString =
+      let TemplateString txt = uriTemplate
           !segments = T.split (`elem` ("{}" :: String)) txt
       in \args -> URI $ T.concat $ flip fmap segments $ \s ->
         maybe s toTemplateParam (args !? Name s)

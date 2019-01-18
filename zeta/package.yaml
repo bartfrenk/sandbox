@@ -35,6 +35,7 @@ dependencies:
   - vector
   - safe
   - exceptions
+  - validation
 
 default-extensions:
   - ConstraintKinds
