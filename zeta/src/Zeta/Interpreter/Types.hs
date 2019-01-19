@@ -10,6 +10,7 @@ import           Data.Set             (Set)
 import           Lens.Micro.TH
 
 import           Zeta.Syntax
+import           Zeta.Types
 
 data RuntimeError
   = MissingExternal ExtSignature

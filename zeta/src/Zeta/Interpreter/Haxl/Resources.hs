@@ -1,17 +1,19 @@
-{-# LANGUAGE TemplateHaskell #-}
-module Zeta.Interpreter.Haxl.Resource where
+module Zeta.Interpreter.Haxl.Resources where
 
+import           Control.Arrow     ((&&&))
 import           Data.Aeson
 import           Data.Aeson.Lens
-import           Data.Map.Strict   (Map, (!?))
+import           Data.Map.Strict   (Map)
 import qualified Data.Map.Strict   as Map
-import           Data.Set
-import           Data.String
+import           Data.Set          (Set)
+import qualified Data.Set          as Set
 import           Data.Text         (Text)
 import qualified Data.Text         as T
 import           Data.Validation
+import           Data.Yaml         (decodeFileEither)
 import           GHC.Generics      (Generic)
 import           Lens.Micro.Extras
+import           Prelude           hiding (id)
 
 import           Zeta.Syntax
 import           Zeta.Types
@@ -29,6 +31,9 @@ instance FromJSON ContextType where
       _ -> fail $ "invalid type " ++ T.unpack t
 
 newtype Selector a = Selector (a -> Maybe Expr)
+
+from :: Selector a -> a -> Maybe Expr
+from (Selector f) = f
 
 -- |Intermediate represenation of a 'Selector' that is easier for parsing and
 -- printing.
@@ -62,7 +67,7 @@ instance FromJSON ResourceDescription where
   parseJSON = withObject "ResourceDescription" $ \obj ->
     ResourceDescription <$> obj .: "uri" <*> obj .: "contexts"
 
-newtype URI = URI Text
+newtype URI = URI { unUri :: Text }
 
 data Resource a = Resource
   { makeUri   :: Map Name Literal -> Validation [Name] URI
@@ -70,28 +75,22 @@ data Resource a = Resource
   , signature :: Set Name
   }
 
+loadFetches :: FilePath -> IO (Map (URN, Set Name) (Resource Value))
+loadFetches path = do
+  Right resourceDescriptions <- decodeFileEither path
+  let fetches = (makeFetches . makeResource) <$> (resourceDescriptions :: Map Text ResourceDescription)
+  pure $ foldr mappend mempty fetches
+
 makeFetches :: Resource a -> Map (URN, Set Name) (Resource a)
-makeFetches res = undefined
+makeFetches res@Resource{selectors, signature} =
+  Map.fromList (create <$> Map.toList selectors)
+  where
+    create (urn, _) = ((urn, signature), res)
 
 makeResource :: ToJSON a => ResourceDescription -> Resource a
 makeResource ResourceDescription{..} =
   Resource
   { makeUri = fmap URI . asFunction uriTemplate
-  , selectors = Map.fromList (fromSelectorDescription <$> contexts)
+  , selectors = Map.fromList $ (id &&& makeSelector) <$> contexts
   , signature = placeholders uriTemplate
   }
-  where
-
-    fromSelectorDescription desc@SelectorDescription{..} = (id, makeSelector desc)
-
--- test :: IO (Either ParseException Resource)
--- test = decodeFileEither "docs/resource.yaml"
-
--- ipstack' :: Resource
--- ipstack' = Resource
---   { url = const "http://api.ipstack.com/82.171.74.76?access_key=2b5b300141b464d17f33178463bc2456"
---   , contexts = [(["city"],  fmap (Literal . S) . preview (key "city" . _String))]
---   }
-
-
-

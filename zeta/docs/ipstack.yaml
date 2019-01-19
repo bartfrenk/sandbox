@@ -1,4 +1,4 @@
-uri: "http://api.ipstack.com/{ip-address}?access_key=2b5b300141b464d17f33178463bc2456"
+uri: "http://api.ipstack.com/{ip-address}?access_key=<ACCESS_KEY>"
 contexts:
   - id: urn:city
     path: [city]

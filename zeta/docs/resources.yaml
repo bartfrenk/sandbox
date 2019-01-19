@@ -1,0 +1,22 @@
+ipstack:
+  uri: "http://api.ipstack.com/{ip_address}?access_key=<ACCESS_KEY>"
+  contexts:
+    - id: urn:city
+      path: [city]
+      type: string
+    - id: urn:country
+      path: [country_name]
+      type: string
+    - id: urn:is_eu
+      path: [location, is_eu]
+      type: bool
+    - id: urn:country_code
+      path: [country_code]
+      type: string
+openweatermap:
+  uri: "http://api.openweathermap.org:80/data/2.5/weather?APPID=<APPID>&q={city},{country_code}"
+  contexts:
+    - id: urn:wind_degree
+      path: [wind, deg]
+      type: integer
+

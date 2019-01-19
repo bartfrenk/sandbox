@@ -1,24 +1,25 @@
 module Zeta.Interpreter.Haxl.WebRequest where
 
-import           Data.Aeson
-import           Data.ByteString.Lazy
+import           Control.Monad.Except
+import           Data.Aeson                      (eitherDecode)
 import           Data.Hashable
-import           Data.Map.Strict                 (Map, (!), (!?))
+import           Data.Map.Strict                 (Map, (!?))
 import qualified Data.Map.Strict                 as Map
 import           Data.Set                        (Set)
+import qualified Data.Text                       as T
+import           Data.Validation                 (Validation (..))
 import           Data.Yaml
 import           Haxl.Core
-import           Lens.Micro.Extras
 import           Network.HTTP.Client
-
+import qualified Debug.Trace as Debug
 import           Control.Monad.Writer
-import qualified Debug.Trace                     as D
 
 import           Zeta.Interpreter                hiding (execute)
 import qualified Zeta.Interpreter                as I
 import           Zeta.Interpreter.Haxl.Resources
 import qualified Zeta.Interpreter.Types          as I
 import           Zeta.Syntax
+import           Zeta.Types
 
 data WebRequest a where
   WebRequest :: URN -> Map Name Literal -> WebRequest (Maybe Expr)
@@ -36,7 +37,7 @@ instance DataSourceName WebRequest where
   dataSourceName _ = "WebRequest"
 
 newtype WebRequestEnv = WebRequestEnv
-  { fetches :: Map (URN, Set Name) Resource
+  { fetches :: Map (URN, Set Name) (Resource Value)
   }
 
 instance StateKey WebRequest where
@@ -53,22 +54,33 @@ instance DataSource WebRequestEnv WebRequest where
 
       processFetch :: BlockedFetch WebRequest -> IO ()
       processFetch (BlockedFetch (WebRequest urn args) var) =
-        D.trace (show (urn, args)) $
         case fetches env !? (urn, Map.keysSet args) of
           Nothing -> putSuccess var Nothing
-          Just resource -> case contexts resource !? urn of
+          Just resource -> case selectors resource !? urn of
             Nothing -> putSuccess var Nothing
-            Just selector -> do
+            Just select -> do
               result <- fetchResource (manager state) resource args
               case result of
-                Right val -> D.trace (show val) $ putSuccess var (selector val)
+                Right val -> putSuccess var (select `from` val)
                 Left _ -> putSuccess var Nothing
 
-fetchResource :: Manager -> Resource -> Map Name Literal -> IO (Either String Value)
-fetchResource manager Resource{url} args = D.trace (show (url args)) $ do
-  request <- parseRequest $ url args
-  body <- responseBody <$> httpLbs request manager
-  pure $ eitherDecode body
+data FetchFailure
+  = InvalidTemplateStringArgs [Name]
+  | FailedToDecodeJSON String
+
+-- |This function is called from the 'GenHaxl' monad to make the actual web
+-- request and decode the results into a JSON value.
+fetchResource :: Manager -> Resource Value -> Map Name Literal -> IO (Either FetchFailure Value)
+fetchResource manager Resource{makeUri} args =
+  case makeUri args of
+    Failure err -> pure $ Left $ InvalidTemplateStringArgs err
+    Success uri -> do
+      print $ unUri uri
+      request <- parseRequest $ T.unpack $ unUri uri
+      body <- responseBody <$> httpLbs request manager
+      case eitherDecode body of
+        Left err -> pure $ Left $ FailedToDecodeJSON err
+        Right val -> pure $ Right val
 
 -- ==== TEST (remove later)
 
@@ -113,17 +125,29 @@ execute externals env expr = liftIO $ do
 --   resource <- fetchResource mgr ipstack []
 --   pure $ (contexts ipstack ! ["city"]) resource
 
-test2 expr = do
-  Right ipstack <- decodeFileEither "docs/resource.yaml"
-  execute [] (WebRequestEnv
-              [ ((["city"], ["ip-address"]), ipstack)
-              , ((["country"], ["ip-address"]), ipstack)
-              , ((["is_eu"], ["ip-address"]), ipstack)
-              ]) expr
+test1 expr = do
+  Right ipstackDesc <- decodeFileEither "docs/resource.yaml"
+  let ipstack = makeResource ipstackDesc
+  let fetches = makeFetches ipstack
+  execute
+    [ ((["city"], []), Fetch ["city"] [("ip-address", "82.171.74.76")])
+    , ((["country_code"], []), Fetch ["country_code"] [("ip-address", "82.171.74.76")])
+    ] (WebRequestEnv fetches) expr
 
-test3 = do
-  Right ipstack <- decodeFileEither "docs/resource.yaml"
-  print (url ipstack [("ip-address", "8.8.8.8")])
+test2 expr = do
+  fetches <- loadFetches "docs/resources.yaml"
+  execute
+    [ ((["city"], []), Fetch ["city"] [("ip_address", "82.171.74.76")])
+    , ((["country_code"], []), Fetch ["country_code"] [("ip_address", "82.171.74.76")])
+    , ((["wind_degree"], []), Fetch ["wind_degree"]
+        [ ("city", App (External ["city"]) [])
+        , ("country_code", App (External ["country_code"]) [])])]
+    (WebRequestEnv fetches) expr
+
+
+-- test3 = do
+--   Right ipstack <- decodeFileEither "docs/resource.yaml"
+--   print (url ipstack [("ip-address", "8.8.8.8")])
 
 x :: IO (Either RuntimeError Expr, Assignments)
 x = test2 (Assignment "x" (Literal $ I 0))
@@ -131,5 +155,20 @@ x = test2 (Assignment "x" (Literal $ I 0))
 
 
 
-y :: IO (Either RuntimeError Expr, Assignments)
-y = test2 (Fetch ["is_eu"] [("ip-address", "82.171.74.76")])
+u :: IO (Either RuntimeError Expr, Assignments)
+u = test2 (Fetch ["is_eu"] [("ip-address", "82.171.74.76")])
+
+
+v :: IO (Either RuntimeError Expr, Assignments)
+v = test2 (Fetch ["country_code"] [("ip-address", "82.171.74.76")])
+
+w :: IO (Either RuntimeError Expr, Assignments)
+w = test2 (Fetch ["wind_degree"] [("city", "Eindhoven"), ("country-code", "nl")])
+
+
+a :: IO (Either RuntimeError Expr, Assignments)
+a = test2 (App (External ["country_code"]) [])
+
+
+b :: IO (Either RuntimeError Expr, Assignments)
+b = test2 (App (External ["wind_degree"]) [])
