@@ -11,6 +11,7 @@ import           Zeta.Interpreter       hiding (execute)
 import qualified Zeta.Interpreter       as I
 import qualified Zeta.Interpreter.Types as I
 import           Zeta.Syntax
+import           Zeta.Types
 
 -- |Request to fetch expressions from an in memory-lookup table
 data MockRequest a where

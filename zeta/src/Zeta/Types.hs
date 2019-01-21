@@ -5,7 +5,7 @@ module Zeta.Types
   , placeholders
   , asFunction
   , TemplateParam(..)
-  , URN
+  , URN(..)
   ) where
 
 import Data.Validation

@@ -7,6 +7,7 @@ import           Text.Parsec   hiding (spaces)
 import qualified Text.Parsec   as Parsec
 
 import           Zeta.Syntax
+import           Zeta.Types
 
 type MonadParse s m = (Stream s m Char, Monad m)
 
