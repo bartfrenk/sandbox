@@ -84,8 +84,8 @@ runtimeSpec =
 
   describe "execute with runtime" $ do
 
-    it "fails on missing externals" $ pendingWith "Or only fail on application?"
---      External ["x", "y"] `failsWith` \case MissingExternal _ -> True; _ -> False
+    it "fixes externals" $
+      External ["x", "y"] |=> External ["x", "y"]
 
     it "fails when attempting to apply a missing external" $
       App (External ["x", "y"]) [] `failsWith` \case
@@ -99,7 +99,7 @@ runtimeSpec =
       App (External ["inc"]) [("x", Literal (I 1))] |=> Literal (I 2)
 
     it "fetches data succesfully" $
-      Fetch ["weather", "temperature"] [("city", "Amsterdam")] |=> Literal (I 20)
+      App (Fetch ["weather", "temperature"]) [("city", "Amsterdam")] |=> Literal (I 20)
 
     it "fetches data within external function" $
       App (External ["kelvin"]) [("city", "Amsterdam")] |=> Literal (I 293)
@@ -111,7 +111,7 @@ runtimeSpec =
           , ((["inc"], ["x"]), BinaryOp Plus (Var "x") (Literal (I 1)))
           , ((["kelvin"], ["city"]),
              BinaryOp Plus (Literal (I 273))
-              (Fetch ["weather", "temperature"] [("city", Var "city")]))
+              (App (Fetch ["weather", "temperature"]) [("city", Var "city")]))
           ]
       , _fetch = \urn args -> case (urn, args) of
           (["weather", "temperature"], [("city", "Amsterdam")]) ->

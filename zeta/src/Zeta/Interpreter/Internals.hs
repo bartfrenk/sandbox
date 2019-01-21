@@ -25,6 +25,7 @@ withScope f expr = do
   pure expr
 
 interpret :: Domain m => Expr -> InterpreterT m Expr
+interpret Empty = pure (Literal None)
 interpret literal@(Literal _) = pure literal
 interpret external@(External _) = pure external
 interpret (Binding bs expr) = withScope (`mappend` RuntimeState bs) expr
@@ -32,6 +33,7 @@ interpret (App fn args) = do
   fn' <- interpret fn
   args' <- traverse interpret args
   case fn' of
+
     External urn -> do
       externals' <- view externals
       let signature = (urn, Map.keysSet args')
@@ -40,21 +42,25 @@ interpret (App fn args) = do
           throwError $ MissingExternal signature
         Just expr ->
           withScope (set bindings args') expr
+
+    Fetch urn ->
+      case traverse maybeLiteral args' of
+        Nothing ->
+          throwError $ InvalidFetch urn args'
+        Just literals -> do
+          fetch' <- view fetch
+          lift (fetch' urn literals) >>= \case
+            Nothing -> pure $ Literal None
+            Just expr -> interpret expr
+
     expr ->
       throwError $ InvalidFunction expr
-interpret (Fetch urn args) = do
-  args' <- traverse interpret args
-  case traverse maybeLiteral args' of
-    Nothing ->
-      throwError $ InvalidFetch urn args'
-    Just literals -> do
-      fetch' <- view fetch
-      lift (fetch' urn literals) >>= \case
-        Nothing -> pure $ Literal None
-        Just expr -> interpret expr
-  where
-    maybeLiteral (Literal lit) = Just lit
-    maybeLiteral _ = Nothing
+
+    where
+      maybeLiteral (Literal lit) = Just lit
+      maybeLiteral _ = Nothing
+
+interpret fetch@(Fetch _) = pure fetch
 interpret (Assignment name expr) = do
   expr' <- interpret expr
   assign name expr'

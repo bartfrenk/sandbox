@@ -129,16 +129,16 @@ test1 expr = do
   let ipstack = makeResource ipstackDesc
   let fetches = makeFetches ipstack
   execute
-    [ ((["city"], []), Fetch ["city"] [("ip-address", "82.171.74.76")])
-    , ((["country_code"], []), Fetch ["country_code"] [("ip-address", "82.171.74.76")])
+    [ ((["city"], []), App (Fetch ["city"]) [("ip-address", "82.171.74.76")])
+    , ((["country_code"], []), App (Fetch ["country_code"]) [("ip-address", "82.171.74.76")])
     ] (WebRequestEnv fetches) expr
 
 test2 expr = do
-  fetches <- loadFetches "docs/resources.yaml"
+  fetches <- loadFetches "docs/_resources.yaml"
   execute
-    [ ((["city"], []), Fetch ["city"] [("ip_address", "82.171.74.76")])
-    , ((["country_code"], []), Fetch ["country_code"] [("ip_address", "82.171.74.76")])
-    , ((["wind_degree"], []), Fetch ["wind_degree"]
+    [ ((["city"], []), App (Fetch ["city"]) [("ip_address", "82.171.74.76")])
+    , ((["country_code"], []), App (Fetch ["country_code"]) [("ip_address", "82.171.74.76")])
+    , ((["wind_degree"], []), App (Fetch ["wind_degree"])
         [ ("city", App (External ["city"]) [])
         , ("country_code", App (External ["country_code"]) [])])]
     (WebRequestEnv fetches) expr
@@ -155,15 +155,14 @@ x = test2 (Assignment "x" (Literal $ I 0))
 
 
 u :: IO (Either RuntimeError Expr, Assignments)
-u = test2 (Fetch ["is_eu"] [("ip-address", "82.171.74.76")])
+u = test2 (App (Fetch ["is_eu"]) [("ip-address", "82.171.74.76")])
 
 
 v :: IO (Either RuntimeError Expr, Assignments)
-v = test2 (Fetch ["country_code"] [("ip-address", "82.171.74.76")])
+v = test2 (App (Fetch ["country_code"]) [("ip-address", "82.171.74.76")])
 
 w :: IO (Either RuntimeError Expr, Assignments)
-w = test2 (Fetch ["wind_degree"] [("city", "Eindhoven"), ("country-code", "nl")])
-
+w = test2 (App (Fetch ["wind_degree"]) [("city", "Eindhoven"), ("country-code", "nl")])
 
 a :: IO (Either RuntimeError Expr, Assignments)
 a = test2 (App (External ["country_code"]) [])

@@ -7,6 +7,7 @@ import           Data.Text       (Text)
 import qualified Data.Text       as T
 import           GHC.Generics
 import           Prelude
+import GHC.Exts
 
 import           Zeta.Types
 
@@ -20,12 +21,25 @@ data Expr
   | Binding (Map Name Expr) Expr
   | App Expr (Map Name Expr)
   | External URN
-  | Fetch URN (Map Name Expr)
+  | Fetch URN
   | Assignment Name Expr
   | BinaryOp BinaryOp Expr Expr
   | Var Name
   | Sequence Expr Expr
+  | Empty
   deriving (Eq, Show)
+
+instance IsList Expr where
+  type Item Expr = Expr
+
+  fromList [] = Empty
+  fromList [x] = x
+  fromList (x:xs) = Sequence x (fromList xs)
+  fromList _ = error "should not happen"
+
+  toList Empty = []
+  toList (Sequence e1 e2) = toList e1 ++ toList e2
+  toList e = [e]
 
 instance IsString Expr where
   fromString = Literal . fromString

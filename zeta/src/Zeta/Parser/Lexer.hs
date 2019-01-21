@@ -48,7 +48,7 @@ isReservedName :: String -> Bool
 isReservedName = (`elem` reservedNames)
   where
     reservedNames :: [String]
-    reservedNames = ["let", "resolver"]
+    reservedNames = ["let", "external", "in", "fetch"]
 
 integer :: MonadParse s m => ParserT s m Int
 integer = lexeme $ read <$> many1 digit

@@ -10,13 +10,13 @@ spec :: Spec
 spec =
   describe "Haxl interpreter" $ do
     it "evaluates Fetch terms" $
-      Fetch ["city"] [("ip-address", "8.8.8.8")] |=> "Mountain View"
+      App (Fetch ["city"]) [("ip-address", "8.8.8.8")] |=> "Mountain View"
 
     it "returns None when Fetch term does not match a request" $
-      Fetch ["temperature"] [] |=> Literal None
+      App (Fetch ["temperature"]) [] |=> Literal None
 
     it "allows for fetching arguments of fetches" $
-      Fetch ["city"][("ip-address", Fetch ["ip-address"] [])] |=> "Berkeley"
+      App (Fetch ["city"]) [("ip-address", App (Fetch ["ip-address"]) [])] |=> "Berkeley"
   where
     fetches =
       [ ((["city"], [("ip-address", "8.8.8.8")]), "Mountain View")
