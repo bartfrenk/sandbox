@@ -11,7 +11,6 @@ import           Data.Validation                 (Validation (..))
 import           Data.Yaml
 import           Haxl.Core
 import           Network.HTTP.Client
-import qualified Debug.Trace as Debug
 import           Control.Monad.Writer
 
 import           Zeta.Interpreter                hiding (execute)

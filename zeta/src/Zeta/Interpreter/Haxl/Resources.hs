@@ -1,12 +1,12 @@
 module Zeta.Interpreter.Haxl.Resources where
 
+import Data.Function ((&))
 import           Control.Arrow     ((&&&))
 import           Data.Aeson
 import           Data.Aeson.Lens
 import           Data.Map.Strict   (Map)
 import qualified Data.Map.Strict   as Map
 import           Data.Set          (Set)
-import qualified Data.Set          as Set
 import           Data.Text         (Text)
 import qualified Data.Text         as T
 import           Data.Validation
@@ -77,8 +77,10 @@ data Resource a = Resource
 
 loadFetches :: FilePath -> IO (Map (URN, Set Name) (Resource Value))
 loadFetches path = do
-  Right resourceDescriptions <- decodeFileEither path
-  let fetches = (makeFetches . makeResource) <$> (resourceDescriptions :: Map Text ResourceDescription)
+  Right descs <- decodeFileEither path
+  let fetches =  (descs :: Map Text ResourceDescription) &
+                 fmap makeResource &
+                 fmap makeFetches
   pure $ foldr mappend mempty fetches
 
 makeFetches :: Resource a -> Map (URN, Set Name) (Resource a)
