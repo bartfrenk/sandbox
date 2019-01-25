@@ -36,6 +36,7 @@ dependencies:
   - safe
   - exceptions
   - validation
+  - strict
 
 default-extensions:
   - ConstraintKinds

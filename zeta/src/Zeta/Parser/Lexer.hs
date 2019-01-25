@@ -1,6 +1,7 @@
 module Zeta.Parser.Lexer where
 
 import           Control.Monad
+import           Data.Char
 import           Data.String   (fromString)
 import qualified Data.Text     as T
 import           Text.Parsec   hiding (spaces)
@@ -42,7 +43,7 @@ symbol :: MonadParse s m => String -> ParserT s m String
 symbol = lexeme . string
 
 word :: MonadParse s m => ParserT s m String
-word = (:) <$> letter <*> many alphaNum
+word = (:) <$> letter <*> many (satisfy $ \c -> isAlphaNum c || c `elem` ("_" :: String))
 
 isReservedName :: String -> Bool
 isReservedName = (`elem` reservedNames)

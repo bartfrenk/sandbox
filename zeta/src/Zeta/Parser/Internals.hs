@@ -5,7 +5,9 @@ import           Data.Map              (Map)
 import qualified Data.Map              as Map
 import           Data.Text             (Text)
 import qualified Data.Text             as T
-import           Text.Parsec
+import           Prelude               hiding (readFile)
+import           System.IO.Strict      (readFile)
+import           Text.Parsec           hiding (parse)
 import           Text.Parsec.Expr
 import           Text.Parsec.Indent
 
@@ -18,6 +20,9 @@ type CharStream s = Stream s (IndentT Identity) Char
 
 parse :: Text -> Either ParseError Expr
 parse = runIndentParser (toSequence =<< block expr) () ""
+
+parseFromFile :: FilePath -> IO (Either ParseError Expr)
+parseFromFile path = parse . T.pack <$> readFile path
 
 expr :: CharStream s => Parser s Expr
 expr = buildExpressionParser table term <?> "expression"
