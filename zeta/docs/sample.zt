@@ -1,0 +1,6 @@
+let
+  city = external(urn:city)
+  wind_degree = external(urn:wind_degree)
+in
+  title = city()
+  number = wind_degree()
