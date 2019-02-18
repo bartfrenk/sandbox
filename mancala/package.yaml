@@ -1,0 +1,38 @@
+name: mancala
+version: 0.1.0.0
+license: BSD3
+author: "Bart Frenk"
+maintainer: "bart.frenk@gmail.com"
+copyright: "2019 Bart Frenk"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+
+executables:
+  mancala-exe:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - mancala
+
+tests:
+  mancala-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - mancala
