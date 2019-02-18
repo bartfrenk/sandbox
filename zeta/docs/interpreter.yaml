@@ -1,14 +1,49 @@
 
-reductions:
-  - resolver: resolver(urn:lemonpi:context:location:city)
-    params: []
-    to: |
-      let city = resolver(urn:lemonpi:context:location:city)
-      let ip-address = resolver(urn:lemonpi:context:ip-address)
-      grab(city) or city(ip-address=ip-address())
-  - resolver: resolver(urn:lemonpi:context:request:ip-address)
-    params: []
-    to: |
-      let ip-address = resolver(urn:lemonpi:context:request:ip-address)
-      grab(ip-address)
-      
+externals:
+  - signature:
+      context: urn:request:ip-address
+      params: []
+    body: |
+      grab(urn:ip_address)
+  - signature:
+      context: urn:location:city
+      params: []
+    body: |
+      fetch(urn:city)(ip_address=external(urn:request:ip_address)())
+  - signature:
+      context: urn:location:country
+
+resources:
+  ipstack:
+    uri: "http://api.ipstack.com/{ip_address}?access_key=2b5b300141b464d17f33178463bc2456"
+    contexts:
+      - id: urn:city
+        path: [city]
+        type: string
+      - id: urn:country
+        path: [country_name]
+        type: string
+      - id: urn:is_eu
+        path: [location, is_eu]
+        type: bool
+      - id: urn:country_code
+        path: [country_code]
+        type: string
+  openweatermap:
+    uri: "http://api.openweathermap.org:80/data/2.5/weather?APPID=b2365df43766052a0aaa5939c3836fff&q={city},{country_code}"
+    contexts:
+      - id: urn:wind_degree
+        path: [wind, deg]
+        type: integer
+
+
+
+environment: |
+
+  fn urn:city(ip_address):
+    grab(urn:ip_address)
+
+  fn urn:location:city():
+    fetch(urn:location:city)(ip_address=external
+
+  

@@ -45,6 +45,8 @@ instance MonadTrans InterpreterT where
 
 type ExtSignature = (URN, Set Name)
 
+data Signature a = Signature a (Set Name)
+
 newtype RuntimeState = RuntimeState
   { _bindings :: Map Name Expr
   }

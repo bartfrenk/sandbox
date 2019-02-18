@@ -17,6 +17,7 @@ import           Prelude           hiding (id)
 
 import           Zeta.Syntax
 import           Zeta.Types
+import Zeta.Interpreter.Types
 
 -- TODO: This probably needs to move to the type checker when it exists.
 data ContextType = TyString | TyBool | TyInteger
@@ -63,6 +64,18 @@ data ResourceDescription = ResourceDescription
   , contexts    :: [SelectorDescription]
   } deriving (Eq, Show, Generic)
 
+
+data RuntimeDescription = RuntimeDescription
+  { resources :: ResourceDescription
+  , externals :: [ExternalDescription]
+  }
+
+data ExternalDescription = ExternalDescription
+  { signature :: ExtSignature
+  , body :: Expr
+  }
+
+
 instance FromJSON ResourceDescription where
   parseJSON = withObject "ResourceDescription" $ \obj ->
     ResourceDescription <$> obj .: "uri" <*> obj .: "contexts"
@@ -72,7 +85,7 @@ newtype URI = URI { unUri :: Text }
 data Resource a = Resource
   { makeUri   :: Map Name Literal -> Validation [Name] URI
   , selectors :: Map URN (Selector a)
-  , signature :: Set Name
+  , parameters :: Set Name
   }
 
 loadFetches :: FilePath -> IO (Map (URN, Set Name) (Resource Value))
@@ -84,15 +97,15 @@ loadFetches path = do
   pure $ foldr mappend mempty fetches
 
 makeFetches :: Resource a -> Map (URN, Set Name) (Resource a)
-makeFetches res@Resource{selectors, signature} =
+makeFetches res@Resource{selectors, parameters} =
   Map.fromList (create <$> Map.toList selectors)
   where
-    create (urn, _) = ((urn, signature), res)
+    create (urn, _) = ((urn, parameters), res)
 
 makeResource :: ToJSON a => ResourceDescription -> Resource a
 makeResource ResourceDescription{..} =
   Resource
   { makeUri = fmap URI . asFunction uriTemplate
   , selectors = Map.fromList $ (id &&& makeSelector) <$> contexts
-  , signature = placeholders uriTemplate
+  , parameters = placeholders uriTemplate
   }
