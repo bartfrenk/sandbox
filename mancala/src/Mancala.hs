@@ -4,10 +4,10 @@ module Mancala where
 data Player = P1 | P2 deriving (Eq, Show)
 
 data GameState = GameState
-  { pits :: [Int]
-  , top :: Int
-  , scores :: (Int, Int)
-  , turn :: Player
+  { pits :: [Int] -- ^ Rotating list with the pits
+  , top :: Int -- ^ The pit number of the head of pits
+  , scores :: (Int, Int) -- ^ Number of stones in the stores
+  , turn :: Player -- ^ The player currently making the move
   } deriving (Show)
 
 putStone :: GameState -> GameState
@@ -30,6 +30,7 @@ step :: Int -> GameState -> GameState
 step n st@GameState {..}
   | n == 0 = st
   | n > 1 =
+    -- TODO: This is slow due to list concatenation
     let st' = st { pits = tail pits ++ [head pits]
                  , top = top + 1 `mod` length pits
                  }
@@ -60,7 +61,6 @@ deposit n st@GameState{..}
       deposit (n - 2) (step 1 $ incScore 1 $ putStone st)
   | n == 0 = st
   | n == 1 =
-      let st' = putStone st
-      in toggleTurn $ if head pits == 0 then capture st' else st'
+      putStone $ toggleTurn $ if head pits == 0 then capture st else st
   | n > 1 =
       deposit (n - 1) (step 1 $ putStone st)
