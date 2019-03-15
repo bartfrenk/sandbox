@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3661bda8bd733cab6f2a4cac7fe3ad223ff20fd6ebb72ccd9cb556c2fcb6976e
+-- hash: 163290fd4b977cd3f2247c5c69957db2ded2d903f3917c09b8caefac25a23e78
 
 name:           haskell-misc
 version:        0.1.0.0
@@ -18,6 +18,8 @@ extra-source-files:
 
 library
   exposed-modules:
+      Lenses
+      MicroLens
       MutableData
       Snark
       Strategy
@@ -36,7 +38,9 @@ library
     , cryptonite
     , free
     , hspec
+    , lens
     , memory
+    , microlens-platform
     , mtl
     , primitive
     , random

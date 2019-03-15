@@ -26,6 +26,8 @@ dependencies:
 - hspec
 - primitive
 - vector
+- lens
+- microlens-platform
 
 ghc-options:
   - -Wall
