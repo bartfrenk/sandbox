@@ -5,8 +5,6 @@ const BOARD_SIZE: usize = 14;
 const STORES: [usize; 2] = [BOARD_SIZE / 2 - 1, BOARD_SIZE - 1];
 const SIDE: usize = BOARD_SIZE / 2 - 1;
 
-use crate::utils;
-
 #[derive(Debug)]
 struct Board {
     pits: Vec<Pit>,
@@ -64,7 +62,6 @@ impl Board {
         for i in &STORES {
             board.pits[*i] = Pit(0);
         }
-        board.pits[5] = Pit(0);
         return board;
     }
 
@@ -125,9 +122,14 @@ impl Board {
 
 impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let top = utils::join(self.pits[STORES[0] + 1..].iter().rev(), " ");
-        let bottom = utils::join(self.pits[..=STORES[0]].iter(), " ");
-        write!(f, "{}\n   {}", top, bottom)
+        for pit in self.pits[STORES[0] + 1..].iter().rev() {
+            write!(f, "{:3}", pit.0)?;
+        }
+        write!(f, "\n   ")?;
+        for pit in self.pits[..=STORES[0]].iter() {
+            write!(f, "{:3}", pit.0)?;
+        }
+        Ok(())
     }
 }
 
