@@ -19,4 +19,9 @@ openweatermap:
     - id: urn:wind_degree
       path: [wind, deg]
       type: integer
-
+bandit-agent:
+  uri: "http://api.bandit-agent.org:80/1?context={city}"
+  contexts:
+    - id: urn:1:title
+      path: [title]
+      type: string
