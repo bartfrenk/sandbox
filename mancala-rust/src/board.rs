@@ -31,7 +31,7 @@ impl Pit {
         self.0 == 0
     }
 
-    fn collect(&mut self, sources: &[&mut Pit]) {
+    fn collect(&mut self, sources: &mut [Pit]) {
         for source in sources {
             self.inc(source.0);
             source.clear();
@@ -109,7 +109,7 @@ impl Board {
         println!("{:?}, {:?}", player, pos);
         if self.is_on_players_side(player, pos) && self.pits[pos].has(1) {
             self.pits[self.store(player)]
-                .collect(&[&mut (self.pits[pos]), &mut (self.pits[self.opposite(pos)])])
+                .collect(&mut [self.pits[pos], self.pits[self.opposite(pos)]])
         }
 
         if pos == self.store(player) {
