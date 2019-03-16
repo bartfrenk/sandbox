@@ -1,3 +1,6 @@
 fn main() {
-    mancala::board::test();
+    match mancala::board::test() {
+        Ok(_) => return,
+        Err(s) => eprintln!("{}", s)
+    };
 }
