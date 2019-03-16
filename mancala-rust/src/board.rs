@@ -1,4 +1,5 @@
 use std::fmt;
+use std::vec::Vec;
 
 const BOARD_SIZE: usize = 14;
 const STORES: [usize; 2] = [BOARD_SIZE / 2 - 1, BOARD_SIZE - 1];
@@ -8,7 +9,7 @@ use crate::utils;
 
 #[derive(Debug)]
 struct Board {
-    pits: [Pit; BOARD_SIZE],
+    pits: Vec<Pit>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -29,13 +30,6 @@ impl Pit {
 
     fn empty(&self) -> bool {
         self.0 == 0
-    }
-
-    fn collect(&mut self, sources: &mut [Pit]) {
-        for source in sources {
-            self.inc(source.0);
-            source.clear();
-        }
     }
 
     fn has(&self, count: u8) -> bool {
@@ -63,9 +57,9 @@ impl fmt::Display for Pit {
 }
 
 impl Board {
-    pub fn new() -> Board {
+    pub fn new(size: usize) -> Board {
         let mut board = Board {
-            pits: [Pit(4); BOARD_SIZE],
+            pits: vec![Pit(4); size],
         };
         for i in &STORES {
             board.pits[*i] = Pit(0);
@@ -80,6 +74,15 @@ impl Board {
         return lo <= start && start < hi;
     }
 
+    fn collect(&mut self, dest: usize, sources: &[usize]) {
+        let mut total = 0;
+        for src in sources {
+            total += self.pits[*src].0;
+            self.pits[*src].clear();
+        }
+        self.pits[dest].inc(total)
+    }
+
     fn store(&self, player: Player) -> usize {
         match player {
             Player::P1 => STORES[0],
@@ -90,6 +93,7 @@ impl Board {
     fn opposite(&self, pos: usize) -> usize {
         return BOARD_SIZE - 2 - pos;
     }
+
 
     // TODO: This could be implemented cleaner using an iterator over the positions.
     pub fn sow(&mut self, player: Player, start: usize) -> Result<Player, &'static str> {
@@ -108,8 +112,7 @@ impl Board {
         }
         println!("{:?}, {:?}", player, pos);
         if self.is_on_players_side(player, pos) && self.pits[pos].has(1) {
-            self.pits[self.store(player)]
-                .collect(&mut [self.pits[pos], self.pits[self.opposite(pos)]])
+            self.collect(self.store(player), &[pos, self.opposite(pos)])
         }
 
         if pos == self.store(player) {
@@ -129,7 +132,7 @@ impl fmt::Display for Board {
 }
 
 pub fn test() {
-    let mut board = Board::new();
+    let mut board = Board::new(BOARD_SIZE);
     board.sow(Player::P1, 1).unwrap();
     println!("{}", board);
 }
