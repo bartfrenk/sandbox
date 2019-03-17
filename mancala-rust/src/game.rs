@@ -25,10 +25,15 @@ pub fn run() -> Result<(), String> {
 }
 
 fn execute_mv(player: Player, board: &mut Board) -> Result<Player, String> {
-    let mut input = String::new();
     println!("\n{}\n", board);
-    print!("Enter move ({:?}): ", player);
+    print!(
+        "Enter move from {:?} ({:?}): ",
+        board.valid_moves(player),
+        player
+    );
     stdout().flush().unwrap();
+
+    let mut input = String::new();
     stdin().read_line(&mut input).map_err(|e| e.to_string())?;
 
     let mv: usize = input

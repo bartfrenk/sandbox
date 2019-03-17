@@ -40,9 +40,9 @@ impl Board {
         return Ok(board);
     }
 
-    // Execute a move for `player` by sowing all the seeds in position `start`.
+    // Execute a move for `player` by sowing all the seeds in position `mv`.
     pub fn sow(&mut self, player: Player, mv: usize) -> Result<Player, &'static str> {
-        let mut pos = self.mv_to_pos(player, mv)?;
+        let mut pos = self.convert_move_to_pos(player, mv)?;
         let mut seeds = self.pits[pos];
         if seeds == 0 {
             return Err("invalid move: no seeds");
@@ -67,7 +67,7 @@ impl Board {
         }
     }
 
-    fn mv_to_pos(&self, player: Player, mv: usize) -> Result<usize, &'static str> {
+    fn convert_move_to_pos(&self, player: Player, mv: usize) -> Result<usize, &'static str> {
         if mv < 1 || mv > self.pits.len() / 2 - 1 {
             return Err("invalid move: not on board");
         }
@@ -108,6 +108,18 @@ impl Board {
     // Return the position on the board opposite to `pos`.
     fn opposite(&self, pos: usize) -> usize {
         return self.pits.len() - 2 - pos;
+    }
+
+    pub fn valid_moves(&self, player: Player) -> Vec<usize> {
+        let mut mvs = vec![];
+        let pits_per_side = self.pits.len() / 2 - 1;
+
+        for i in 1..pits_per_side {
+            if self.pits[self.convert_move_to_pos(player, i).unwrap()] > 0 {
+                mvs.push(i);
+            }
+        }
+        return mvs;
     }
 }
 
