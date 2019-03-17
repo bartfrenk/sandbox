@@ -1,18 +1,15 @@
 use std::fmt;
-use std::option::Option;
 use std::vec::Vec;
-
-const BOARD_SIZE: usize = 14;
 
 type Pit = usize;
 
 #[derive(Debug)]
-struct Board {
+pub struct Board {
     pits: Vec<Pit>,
 }
 
 #[derive(Debug, Clone, Copy)]
-enum Player {
+pub enum Player {
     P1,
     P2,
 }
@@ -44,13 +41,14 @@ impl Board {
     }
 
     // Execute a move for `player` by sowing all the seeds in position `start`.
-    pub fn sow(&mut self, player: Player, start: usize) -> Result<Player, &'static str> {
-        if !self.is_on_players_side(player, start) {
-            return Err("invalid move");
-        };
-        let mut seeds = self.pits[start];
-        self.pits[start] = 0;
-        let mut pos = start;
+    pub fn sow(&mut self, player: Player, mv: usize) -> Result<Player, &'static str> {
+        let mut pos = self.mv_to_pos(player, mv)?;
+        let mut seeds = self.pits[pos];
+        if seeds == 0 {
+            return Err("invalid move: no seeds");
+        }
+        self.pits[pos] = 0;
+
         while seeds > 0 {
             pos = (pos + 1) % self.pits.len();
             if pos != Board::store(self.pits.len(), player.other()) {
@@ -67,6 +65,15 @@ impl Board {
         } else {
             Ok(player.other())
         }
+    }
+
+    fn mv_to_pos(&self, player: Player, mv: usize) -> Result<usize, &'static str> {
+        if mv < 1 || mv > self.pits.len() / 2 - 1 {
+            return Err("invalid move: not on board");
+        }
+        let store_index = Board::store(self.pits.len(), player);
+        let pits_per_side = self.pits.len() / 2 - 1;
+        Ok(store_index - (pits_per_side + 1 - mv))
     }
 
     // Check whether the index `pos` is on the side of `player`.
@@ -116,11 +123,4 @@ impl fmt::Display for Board {
         }
         Ok(())
     }
-}
-
-pub fn test() -> Result<(), &'static str> {
-    let mut board = Board::new(BOARD_SIZE)?;
-    println!("{:?}", board.sow(Player::P1, 5)?);
-    println!("{}", board);
-    Ok(())
 }

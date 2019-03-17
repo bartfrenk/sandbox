@@ -1,6 +1,6 @@
 fn main() {
-    match mancala::board::test() {
-        Ok(_) => return,
-        Err(s) => eprintln!("{}", s)
-    };
+    match mancala::game::run() {
+        Ok(()) => return,
+        Err(msg) => eprintln!("{}", msg),
+    }
 }
