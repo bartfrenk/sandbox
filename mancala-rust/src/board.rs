@@ -1,6 +1,6 @@
 use std::fmt;
-use std::vec::Vec;
 use std::option::Option;
+use std::vec::Vec;
 
 const BOARD_SIZE: usize = 14;
 
@@ -68,7 +68,7 @@ impl Board {
             Ok(player.other())
         }
     }
-    
+
     // Check whether the index `pos` is on the side of `player`.
     fn is_on_players_side(&self, player: Player, pos: usize) -> bool {
         let hi = Board::store(self.pits.len(), player);
