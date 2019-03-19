@@ -1,4 +1,5 @@
 use std::fmt;
+use std::option::Option;
 use std::vec::Vec;
 
 type Pit = usize;
@@ -12,6 +13,11 @@ pub struct Board {
 pub enum Player {
     P1,
     P2,
+}
+
+pub enum GameResult {
+    Winner(Player),
+    Draw,
 }
 
 impl Player {
@@ -67,6 +73,34 @@ impl Board {
         }
     }
 
+    pub fn winner(&self) -> Result<Option<GameResult>, &'static str> {
+        if self.all_pits_empty(Player::P1)? || self.all_pits_empty(Player::P2)? {
+            let size = self.pits.len();
+            let seeds_p1 = self.pits[Board::store(size, Player::P1)];
+            let seeds_p2 = self.pits[Board::store(size, Player::P2)];
+            if seeds_p1 > seeds_p2 {
+                return Ok(Some(GameResult::Winner(Player::P1)));
+            }
+            if seeds_p1 < seeds_p2 {
+                return Ok(Some(GameResult::Winner(Player::P2)));
+            }
+            return Ok(Some(GameResult::Draw));
+        }
+        Ok(None)
+    }
+
+    // Checks whether `player` wins the game.
+    fn all_pits_empty(&self, player: Player) -> Result<bool, &'static str> {
+        let pits_per_side = self.pits.len() / 2 - 1;
+        let pos = self.convert_move_to_pos(player, 1)?;
+        for i in pos..pos + pits_per_side {
+            if self.pits[i] > 0 {
+                return Ok(false);
+            }
+        }
+        return Ok(true);
+    }
+
     fn convert_move_to_pos(&self, player: Player, mv: usize) -> Result<usize, &'static str> {
         if mv < 1 || mv > self.pits.len() / 2 - 1 {
             return Err("invalid move: not on board");
@@ -114,7 +148,7 @@ impl Board {
         let mut mvs = vec![];
         let pits_per_side = self.pits.len() / 2 - 1;
 
-        for i in 1..pits_per_side {
+        for i in 1..=pits_per_side {
             if self.pits[self.convert_move_to_pos(player, i).unwrap()] > 0 {
                 mvs.push(i);
             }

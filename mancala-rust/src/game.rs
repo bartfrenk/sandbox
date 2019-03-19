@@ -2,6 +2,7 @@ use std::io::{stdin, stdout, Write};
 use std::num::ParseIntError;
 
 use crate::board::Board;
+use crate::board::GameResult;
 use crate::board::Player;
 
 const BOARD_SIZE: usize = 14;
@@ -9,15 +10,24 @@ const BOARD_SIZE: usize = 14;
 pub fn run() -> Result<(), String> {
     let mut board = Board::new(BOARD_SIZE)?;
     let mut player = Player::P1;
-    let mut turns = 4;
 
-    while turns > 0 {
+    loop {
         match execute_mv(player, &mut board) {
             Err(s) => eprintln!("{}", s),
             Ok(next) => {
                 player = next;
-                turns -= 1
             }
+        }
+        match board.winner()? {
+            Some(GameResult::Winner(player)) => {
+                println!("Player {:?} wins", player);
+                break;
+            }
+            Some(GameResult::Draw) => {
+                println!("Game finished with a draw");
+                break;
+            }
+            None => (),
         }
     }
 
