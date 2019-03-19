@@ -1,18 +1,18 @@
+use crate::agent;
 use crate::agent::Agent;
-use crate::agent::HumanPlayer;
 use crate::board::Board;
 use crate::board::GameResult;
 use crate::board::Player;
 
 const BOARD_SIZE: usize = 14;
 
-pub struct Players {
+pub struct AgentMap {
     player1: Box<dyn Agent>,
     player2: Box<dyn Agent>,
 }
 
-impl Players {
-    pub fn get_agent(&self, player: Player) -> &Box<dyn Agent> {
+impl AgentMap {
+    pub fn get(&self, player: Player) -> &Box<dyn Agent> {
         match player {
             Player::P1 => &self.player1,
             Player::P2 => &self.player2,
@@ -20,12 +20,12 @@ impl Players {
     }
 }
 
-pub fn play(players: Players) -> Result<(), String> {
+pub fn play(agents: AgentMap) -> Result<(), String> {
     let mut board = Board::new(BOARD_SIZE)?;
     let mut player = Player::P1;
 
     loop {
-        match players.get_agent(player).exec_move(&mut board, player) {
+        match agents.get(player).exec_move(&mut board, player) {
             Err(s) => eprintln!("{}", s),
             Ok(next) => {
                 player = next;
@@ -34,10 +34,12 @@ pub fn play(players: Players) -> Result<(), String> {
         match board.winner()? {
             Some(GameResult::Winner(player)) => {
                 println!("Player {:?} wins", player);
+                println!("\n{}\n", board);
                 break;
             }
             Some(GameResult::Draw) => {
                 println!("Game finished with a draw");
+                println!("\n{}\n", board);
                 break;
             }
             None => (),
@@ -48,9 +50,9 @@ pub fn play(players: Players) -> Result<(), String> {
 }
 
 pub fn run() -> Result<(), String> {
-    let agents = Players {
-        player1: Box::new(HumanPlayer {}),
-        player2: Box::new(HumanPlayer {}),
+    let agents = AgentMap {
+        player1: Box::new(agent::Random::new()),
+        player2: Box::new(agent::Random::new()),
     };
 
     play(agents)
