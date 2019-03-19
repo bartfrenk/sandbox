@@ -1,18 +1,31 @@
-use std::io::{stdin, stdout, Write};
-use std::num::ParseIntError;
-
+use crate::agent::Agent;
+use crate::agent::HumanPlayer;
 use crate::board::Board;
 use crate::board::GameResult;
 use crate::board::Player;
 
 const BOARD_SIZE: usize = 14;
 
-pub fn run() -> Result<(), String> {
+pub struct Players {
+    player1: Box<dyn Agent>,
+    player2: Box<dyn Agent>,
+}
+
+impl Players {
+    pub fn get_agent(&self, player: Player) -> &Box<dyn Agent> {
+        match player {
+            Player::P1 => &self.player1,
+            Player::P2 => &self.player2,
+        }
+    }
+}
+
+pub fn play(players: Players) -> Result<(), String> {
     let mut board = Board::new(BOARD_SIZE)?;
     let mut player = Player::P1;
 
     loop {
-        match execute_mv(player, &mut board) {
+        match players.get_agent(player).exec_move(&mut board, player) {
             Err(s) => eprintln!("{}", s),
             Ok(next) => {
                 player = next;
@@ -34,21 +47,11 @@ pub fn run() -> Result<(), String> {
     Ok(())
 }
 
-fn execute_mv(player: Player, board: &mut Board) -> Result<Player, String> {
-    println!("\n{}\n", board);
-    print!(
-        "Enter move from {:?} ({:?}): ",
-        board.valid_moves(player),
-        player
-    );
-    stdout().flush().unwrap();
+pub fn run() -> Result<(), String> {
+    let agents = Players {
+        player1: Box::new(HumanPlayer {}),
+        player2: Box::new(HumanPlayer {}),
+    };
 
-    let mut input = String::new();
-    stdin().read_line(&mut input).map_err(|e| e.to_string())?;
-
-    let mv: usize = input
-        .trim()
-        .parse()
-        .map_err(|e: ParseIntError| e.to_string())?;
-    board.sow(player, mv).map_err(|e| String::from(e))
+    play(agents)
 }

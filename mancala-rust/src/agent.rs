@@ -1,23 +1,24 @@
-use crate::board;
-use std::num::ParseIntError;
-
 use std::io::{stdin, stdout, Write};
 
+use std::num::ParseIntError;
+
+use crate::board::Board;
+use crate::board::Player;
+
 pub trait Agent {
-    fn exec_move(&self, board: &mut board::Board) -> Result<board::Player, String>;
+    fn exec_move(&self, board: &mut Board, player: Player) -> Result<Player, String>;
 }
 
-pub struct HumanPlayer {
-    player: board::Player,
-}
+#[derive(Clone, Copy, Debug)]
+pub struct HumanPlayer {}
 
 impl Agent for HumanPlayer {
-    fn exec_move(&self, board: &mut board::Board) -> Result<board::Player, String> {
+    fn exec_move(&self, board: &mut Board, player: Player) -> Result<Player, String> {
         println!("\n{}\n", board);
         print!(
             "Enter move from {:?} ({:?}): ",
-            board.valid_moves(self.player),
-            self.player
+            board.valid_moves(player),
+            player
         );
         stdout().flush().unwrap();
 
@@ -28,6 +29,6 @@ impl Agent for HumanPlayer {
             .trim()
             .parse()
             .map_err(|e: ParseIntError| e.to_string())?;
-        board.sow(self.player, mv).map_err(|e| String::from(e))
+        board.sow(player, mv).map_err(|e| String::from(e))
     }
 }

@@ -9,7 +9,7 @@ pub struct Board {
     pits: Vec<Pit>,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Player {
     P1,
     P2,
