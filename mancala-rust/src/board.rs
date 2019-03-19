@@ -1,20 +1,23 @@
 use std::fmt;
-use std::vec::Vec;
 use std::option::Option;
-
-const BOARD_SIZE: usize = 14;
+use std::vec::Vec;
 
 type Pit = usize;
 
 #[derive(Debug)]
-struct Board {
+pub struct Board {
     pits: Vec<Pit>,
 }
 
 #[derive(Debug, Clone, Copy)]
-enum Player {
+pub enum Player {
     P1,
     P2,
+}
+
+pub enum GameResult {
+    Winner(Player),
+    Draw,
 }
 
 impl Player {
@@ -43,14 +46,15 @@ impl Board {
         return Ok(board);
     }
 
-    // Execute a move for `player` by sowing all the seeds in position `start`.
-    pub fn sow(&mut self, player: Player, start: usize) -> Result<Player, &'static str> {
-        if !self.is_on_players_side(player, start) {
-            return Err("invalid move");
-        };
-        let mut seeds = self.pits[start];
-        self.pits[start] = 0;
-        let mut pos = start;
+    // Execute a move for `player` by sowing all the seeds in position `mv`.
+    pub fn sow(&mut self, player: Player, mv: usize) -> Result<Player, &'static str> {
+        let mut pos = self.convert_move_to_pos(player, mv)?;
+        let mut seeds = self.pits[pos];
+        if seeds == 0 {
+            return Err("invalid move: no seeds");
+        }
+        self.pits[pos] = 0;
+
         while seeds > 0 {
             pos = (pos + 1) % self.pits.len();
             if pos != Board::store(self.pits.len(), player.other()) {
@@ -68,7 +72,44 @@ impl Board {
             Ok(player.other())
         }
     }
-    
+
+    pub fn winner(&self) -> Result<Option<GameResult>, &'static str> {
+        if self.all_pits_empty(Player::P1)? || self.all_pits_empty(Player::P2)? {
+            let size = self.pits.len();
+            let seeds_p1 = self.pits[Board::store(size, Player::P1)];
+            let seeds_p2 = self.pits[Board::store(size, Player::P2)];
+            if seeds_p1 > seeds_p2 {
+                return Ok(Some(GameResult::Winner(Player::P1)));
+            }
+            if seeds_p1 < seeds_p2 {
+                return Ok(Some(GameResult::Winner(Player::P2)));
+            }
+            return Ok(Some(GameResult::Draw));
+        }
+        Ok(None)
+    }
+
+    // Checks whether `player` wins the game.
+    fn all_pits_empty(&self, player: Player) -> Result<bool, &'static str> {
+        let pits_per_side = self.pits.len() / 2 - 1;
+        let pos = self.convert_move_to_pos(player, 1)?;
+        for i in pos..pos + pits_per_side {
+            if self.pits[i] > 0 {
+                return Ok(false);
+            }
+        }
+        return Ok(true);
+    }
+
+    fn convert_move_to_pos(&self, player: Player, mv: usize) -> Result<usize, &'static str> {
+        if mv < 1 || mv > self.pits.len() / 2 - 1 {
+            return Err("invalid move: not on board");
+        }
+        let store_index = Board::store(self.pits.len(), player);
+        let pits_per_side = self.pits.len() / 2 - 1;
+        Ok(store_index - (pits_per_side + 1 - mv))
+    }
+
     // Check whether the index `pos` is on the side of `player`.
     fn is_on_players_side(&self, player: Player, pos: usize) -> bool {
         let hi = Board::store(self.pits.len(), player);
@@ -102,6 +143,18 @@ impl Board {
     fn opposite(&self, pos: usize) -> usize {
         return self.pits.len() - 2 - pos;
     }
+
+    pub fn valid_moves(&self, player: Player) -> Vec<usize> {
+        let mut mvs = vec![];
+        let pits_per_side = self.pits.len() / 2 - 1;
+
+        for i in 1..=pits_per_side {
+            if self.pits[self.convert_move_to_pos(player, i).unwrap()] > 0 {
+                mvs.push(i);
+            }
+        }
+        return mvs;
+    }
 }
 
 impl fmt::Display for Board {
@@ -116,11 +169,4 @@ impl fmt::Display for Board {
         }
         Ok(())
     }
-}
-
-pub fn test() -> Result<(), &'static str> {
-    let mut board = Board::new(BOARD_SIZE)?;
-    println!("{:?}", board.sow(Player::P1, 5)?);
-    println!("{}", board);
-    Ok(())
 }
