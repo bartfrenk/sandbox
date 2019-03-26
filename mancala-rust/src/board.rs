@@ -4,7 +4,7 @@ use std::vec::Vec;
 
 type Pit = usize;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Board {
     pits: Vec<Pit>,
 }
