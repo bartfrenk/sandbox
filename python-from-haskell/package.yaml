@@ -15,7 +15,7 @@ description: |
   <https://github.com/githubuser/python-from-haskell#readme>
 
 dependencies:
-  - base >= 4.7 && < 5
+  - base >= 4.10 && < 5
   - cpython
 
 library:
