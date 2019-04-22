@@ -1,2 +1,4 @@
 resolver: lts-11.9
 packages:
+extra-deps:
+  - HsSyck-0.53

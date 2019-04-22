@@ -28,6 +28,8 @@ dependencies:
 - vector
 - lens
 - microlens-platform
+# YAML
+- HsSyck
 
 ghc-options:
   - -Wall
