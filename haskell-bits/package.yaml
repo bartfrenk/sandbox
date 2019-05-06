@@ -30,9 +30,10 @@ dependencies:
 - microlens-platform
 # YAML
 - HsSyck
+- text
 
-ghc-options:
-  - -Wall
+ghc-options: []
+#  - -Wall
 
 library:
   source-dirs: src
