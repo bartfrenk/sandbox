@@ -20,6 +20,10 @@ class TaskStatus(Enum):
     PENDING = ()
 
 
+class DataProxy:
+    pass
+
+
 class TaskState:
     def __init__(self, task):
         self.task = task
