@@ -1,35 +1,52 @@
-from collection import namedtuple
+from collections import namedtuple
 from abc import ABC, abstractmethod
-
 
 
 class TaskDescriptor(ABC):
 
-    Schema = namedtupe('TaskSchema', ['inputs', 'outputs'])
+    Schema = namedtuple('TaskSchema', ['inputs', 'outputs'])
 
     @property
     def schema(self):
         pass
 
-    @property
-    @abstractmethod
-    def inputs(self):
-        """Returns a frozen dict mapping local names to DataSchema instances."""
+    def connect(self, input_descriptors):
         pass
 
-    @property
-    def outputs(self):
-        """Returns a frozen dict mapping local names to DataSchema instances."""
-        pass
+    def __call__(self, **input_descriptors):
+        self.connect(input_descriptors)
 
 
 class DataDescriptor:
-
     def schema(self):
         pass
 
 
-class TaskGraph(TaskSchema):
+_GLOBAL_TASK_GRAPH_VAR = '_TASK_GRAPH'
+
+
+class ScopedGlobal:
+    def __init__(self, var_name, value):
+        self._var_name = var_name
+        self._value = value
+
+    def __enter__(self):
+        # pylint: disable=attribute-defined-outside-init
+        if self._var_name in globals():
+            self._overwritten_value = globals()[self._var_name]
+            globals()[self._var_name] = self._value
+        else:
+            globals()[self._var_name] = self._value
+        return self._value
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        if hasattr(self, '_overwritten_value'):
+            globals()[self._var_name] = self._overwritten_value
+        else:
+            del globals()[self._var_name]
+
+
+class TaskGraph(TaskDescriptor):
     """
     Immutable representation of an abstract work flow.  The representation is in
     terms of a directed bipartite graph, consisting of TaskSchema nodes and
@@ -40,7 +57,13 @@ class TaskGraph(TaskSchema):
     The semantics of work flow execution are determined by the TaskGraph.
     """
 
-    def connect(self, task_schema, input_schemas):
+    def __init__(self, _var_name=_GLOBAL_TASK_GRAPH_VAR):
+        self._var_name = _var_name
+
+    def __enter__(self):
+        return ScopedGlobal(self._var_name, self).__enter__()
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
         pass
 
 
@@ -59,7 +82,5 @@ class Interpreter:
     pass
 
 
-
 class DataInterpreter:
-
     pass
