@@ -1,0 +1,4 @@
+[flake8]
+exclude=.git, migrations
+max-line-length=89
+ignore=F403,F405,F401,E301,E402,E712

@@ -1,0 +1,21 @@
+[master]
+ignore=migrations
+
+[typecheck]
+ignored-classes=scoped_session, sessionmaker, SQLAlchemy, alembic.op
+ignored-modules=pandas
+
+[messages control]
+disable=missing-docstring,
+        invalid-name,
+        too-few-public-methods,
+        duplicate-code,
+        locally-disabled,
+        no-self-use,
+        redefined-builtin,
+        redefined-outer-name
+
+[report]
+exclude_lines =
+    if __name__ == .__main__.:
+

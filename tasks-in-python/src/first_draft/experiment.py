@@ -45,7 +45,7 @@ class AtomicProcess(AbstractProcess):
         self._settings = settings
 
     def connect(self, schemas):
-        composite = globals().get('_COMPOSITE_PROCESS')
+        composite = globals().get("_COMPOSITE_PROCESS")
         if not composite:
             raise ConstructionError()
         composite.add_process(self)
@@ -95,9 +95,11 @@ def task(settings):
         mappings = GetMappings()()
         performance_data = CollectRawData()()
         preprocessed_data = PreprocessData.connect(
-            mappings=mappings, performance_data=performance_data)
+            mappings=mappings, performance_data=performance_data
+        )
         model = AtomicProcess(ProcessName.TRAIN_MODEL)(
-            mappings=mappings, preprocessed_data=preprocessed_data)
+            mappings=mappings, preprocessed_data=preprocessed_data
+        )
 
     return result
 
