@@ -2,9 +2,8 @@ import uuid
 from abc import ABC, abstractmethod
 from collections import namedtuple
 
+from draft.descriptors import _TASK_GRAPH_VAR
 from draft.utils import ScopedGlobal, freeze
-
-_TASK_GRAPH_VAR = '_TASK_GRAPH'
 
 
 class TaskError(Exception):
@@ -99,28 +98,3 @@ class TaskGraph:
             tag = '{}:{}'.format(task_tag, desc.name)
             stubs[desc.name.replace('-', '_')] = self._DataStub(tag, desc)
         return stubs
-
-
-class TaskDescriptor(AbstractTaskDescriptor):
-    def __init__(self, name, input_descriptors, output_descriptors):
-        self._name = name
-        self._input_descriptors = self._conform_data_descriptors(input_descriptors)
-        self._output_descriptors = self._conform_data_descriptors(output_descriptors)
-
-    @classmethod
-    def _conform_data_descriptors(cls, data_descriptors):
-        if isinstance(data_descriptors, list):
-            return {desc.name.replace('-', '_'): desc for desc in data_descriptors}
-        return data_descriptors
-
-    @property
-    def input_descriptors(self):
-        return self._input_descriptors
-
-    @property
-    def output_descriptors(self):
-        return self._output_descriptors
-
-    @property
-    def name(self):
-        return self._name
