@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import Servant
 
 main :: IO ()
-main = putStrLn
+main = putStrLn ""
