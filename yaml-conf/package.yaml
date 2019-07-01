@@ -13,8 +13,16 @@ extra-source-files:
 description: >-
   Please see the README on GitHub at <https://github.com/githubuser/yaml-conf#readme>
 
+default-extensions:
+  - OverloadedStrings
+  - LambdaCase
+
 dependencies:
-- base >= 4.7 && < 5
+  - base >= 4.7 && < 5
+  - HsYAML
+  - exceptions
+  - mtl
+  - bytestring
 
 library:
   source-dirs: src
