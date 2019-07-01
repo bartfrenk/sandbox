@@ -1,0 +1,42 @@
+name: yaml-conf
+version: 0.1.0.0
+github: "bartfrenk/yaml-conf"
+license: BSD3
+author: "Bart Frenk"
+maintainer: "bart.frenk@gmail.com"
+copyright: "2019 Bart Frenk"
+
+extra-source-files:
+  - README.md
+  - CHANGELOG.md
+
+description: >-
+  Please see the README on GitHub at <https://github.com/githubuser/yaml-conf#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+
+executables:
+  yaml-conf-exe:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - yaml-conf
+
+tests:
+  yaml-conf-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - yaml-conf
