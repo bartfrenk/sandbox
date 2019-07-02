@@ -22,6 +22,7 @@ dependencies:
   - HsYAML
   - exceptions
   - mtl
+  - transformers
   - bytestring
 
 library:
