@@ -1,7 +1,10 @@
-{-# LANGUAGE DeriveFunctor        #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE DeriveFunctor         #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE MultiWayIf            #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 module Data.Config.Internals where
 
 import           Control.Monad.Catch       (Exception, MonadThrow, throwM)
@@ -12,55 +15,62 @@ import           Data.ByteString.Lazy      (ByteString)
 import           Data.Either
 import           Data.Maybe
 import           Data.Monoid
-import           Data.YAML
+import           Data.String.Conv
+import           Data.YAML                 (Doc (..), FromYAML, Node (..),
+                                            Scalar (..))
+import qualified Data.YAML                 as YAML
 import           Data.YAML.Event           (Tag, mkTag)
+import           System.Environment        (lookupEnv)
 
 newtype ParseError = ParseError String deriving (Eq, Show)
 
 instance Exception ParseError
 
-
 readConfig :: (MonadIO m, FromYAML v) => FilePath -> ErrT m v
 readConfig = undefined
 
-decodeConfig :: (Monad m, MonadIO m, MonadThrow m, FromYAML v) => ByteString -> m v
-decodeConfig bs = case decodeNode bs of
-  Left description -> throwM $ ParseError description
-  Right [Doc v] -> do
-    node' <- runExceptT (resolve baseResolver v)
-    -- Make this more concise: abstract over something like Either String a -> (MonadThrow m => m a)
-    case node' of
+decodeConfig :: (Monad m, MonadIO m, MonadThrow m, FromYAML v)
+             => Resolver m -> ByteString -> m v
+decodeConfig res bs = fromErrT (decodeNode bs >>= resolve res >>= fromNode)
+
+  where
+    fromErrT act = runExceptT act >>= \case
       Left err -> throwM $ ParseError err
-      Right node ->
-        case parseEither $ parseYAML node of
-          Left description -> throwM $ ParseError description
-          Right v          -> pure v
-  Right _ -> throwM $ ParseError "Expected a single YAML value"
+      Right v -> pure v
 
 test :: IO Node
-test = decodeConfig example
+test = decodeConfig defaultResolver example
   where
     example = "host: !or [!env HOST, localhost]\n\
               \port: 123\n\
+              \database:\n\
+              \  password: secret\n\
               \password: !secret password"
 
-data ResultT m a
-  = Resolved (m (Maybe a))
-  | NoMatch
-  deriving (Functor)
-
-
-defaultResolver :: Monad m => Resolver m
-defaultResolver = orResolver <> baseResolver
+defaultResolver :: MonadIO m => Resolver m
+defaultResolver = orResolver <> envResolver <> baseResolver
 
 type ErrT m a = ExceptT String m a
 
 newtype Resolver m =
   Resolver ((Node -> ErrT m Node) -> Node -> Maybe (ErrT m Node))
 
--- envResolver :: MonadIO m => Resolver m
--- envResolver cont node@(Scalar (SUnknown tag text))
---   | if tag == "!env" =
+instance Semigroup (Resolver m) where
+  (Resolver f) <> (Resolver g) = Resolver $ \cont node ->
+    case f cont node of
+      Just n  -> Just n
+      Nothing -> g cont node
+
+decodeNode :: (Monad m, StringConv s ByteString) => s -> ErrT m Node
+decodeNode s = case YAML.decodeNode (toS s) of
+  Left err         -> throwError err
+  Right [Doc node] -> pure node
+  _                -> throwError "Multiple YAML not supported"
+
+fromNode :: (Monad m, FromYAML v) => Node -> ErrT m v
+fromNode node = case YAML.parseEither $ YAML.parseYAML node of
+  Left err -> throwError err
+  Right v  -> pure v
 
 orResolver :: Monad m => Resolver m
 orResolver = Resolver orResolver'
@@ -79,12 +89,16 @@ orResolver = Resolver orResolver'
       []          -> Nothing
       (Right x:_) -> Just x
 
-instance Semigroup (Resolver m) where
-  (Resolver f) <> (Resolver g) = Resolver $ \cont node ->
-    case f cont node of
-      Just n  -> Just n
-      Nothing -> g cont node
-
+envResolver :: MonadIO m => Resolver m
+envResolver = Resolver envResolver'
+  where
+    envResolver' cont node@(Scalar (SUnknown tag text)) =
+      if | tag == mkTag "!env" -> Just $
+             liftIO (lookupEnv (toS text)) >>= \case
+               Nothing -> throwError "Could not find env"
+               Just s -> decodeNode s >>= cont
+         | otherwise -> Nothing
+    envResolver' _ _ = Nothing
 baseResolver :: Monad m => Resolver m
 baseResolver = Resolver baseResolver'
   where
