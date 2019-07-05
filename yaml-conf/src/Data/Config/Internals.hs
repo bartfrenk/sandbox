@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveFunctor         #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -39,7 +38,7 @@ decodeConfig res bs = fromErrT (decodeNode bs >>= resolve res >>= fromNode)
       Right v -> pure v
 
 test :: IO Node
-test = decodeConfig defaultResolver example
+test = decodeConfig (envResolver <> orResolver <> baseResolver) example
   where
     example = "host: !or [!env HOST, localhost]\n\
               \port: 123\n\
@@ -99,6 +98,7 @@ envResolver = Resolver envResolver'
                Just s -> decodeNode s >>= cont
          | otherwise -> Nothing
     envResolver' _ _ = Nothing
+
 baseResolver :: Monad m => Resolver m
 baseResolver = Resolver baseResolver'
   where
