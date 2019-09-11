@@ -43,44 +43,75 @@
   [node]
   (ping*))
 
+(s/def ::term pos?)
+
+(defn append-entries
+  [node term leader-id])
+
 (defn api
   [node]
-  {slacker-ns {"ping" (partial ping node)}})
+  {slacker-ns {"ping" (partial ping node)
+               "append-entries" (partial append-entries node)}})
+
 
 (declare set-timeout)
 
+(defn start-election
+  [{:keys [config] :as node}]
+  ;; Here we start the election, need to send async rpc requests, and let the
+  ;; vote counting be done in a callback
+  (log/infof "Starting election for node %s" (:port node)))
+
 (defn handle-timeout
   [{config :config :as node}]
-  (log/infof "Timeout for node %s" (:port config))
-  (set-timeout node))
+  (letfn [(update-state [state]
+            (case (:role state)
+
+              :follower
+              (do (-> (assoc state :role :candidate)
+                      (update :term inc)
+                      (update :timeout set-timeout node :candidate))
+                  (start-election node))
+
+              :candidate
+              (log/infof "Election timed out")))])
+  (log/infof "Timeout for node %s" (:port config)))
+
 
 (defn timeout-ms
   [role]
   1000)
 
-(defn set-timeout
-  [{:keys [state timer] :as node}]
-  (swap! state
-         #(let [delay (timeout-ms (:role %))]
-            (update % :timeout
-                    (fn [timeout]
-                      (cancel timeout)
-                      (schedule timer delay (handle-timeout node)))))))
+(defn delay-ms
+  [role]
+  1000)
 
-(defrecord Node [config server peers timer state]
+(defn set-timeout
+  [timeout {timer :timer :as node} role]
+  (cancel timeout)
+  (schedule timer (delay-ms role) (handle-timeout node)))
+
+(s/def ::role #{:leader :follower :candidate})
+(s/def ::timeout (partial instance? TimerTask))
+(s/def ::state
+  (s/keys :req-un [::role
+                   ::term]
+          :opt-un [::timeout]))
+
+(defrecord Node [config server peers timer state-ref]
   component/Lifecycle
   (start [this]
     (if server this
         (let [node (->> (start-slacker-server (api this) (:port config))
                         (assoc this :server))]
           (log/infof "Started RPC server on port %s" (:port config))
-          (set-timeout node)
+          (update state-ref :timeout set-timeout :follower node)
           node)))
 
   (stop [this]
     (if-not server this
             (do
-              (swap! state #(update % :timeout (fn [timeout] (cancel timeout) nil)))
+              (swap! state-ref #(update % :timeout (fn [timeout] (cancel timeout) nil)))
               (stop-slacker-server server)
               (log/infof "Stopped RPC server on port %s" (:port config))
               (assoc this :server nil)))))
@@ -96,7 +127,9 @@
    (map->Node {:config config
                :peers (atom peers)
                :timer (create-timer)
-               :state (atom {:role :follower})})))
+               :state-ref (atom {:role :follower
+                                 :term 0})})))
+
 
 (defn call-node
   [{host :host port :port} fn-name & args]
@@ -117,5 +150,3 @@
 
 (alter-var-root #'nodes #(doall (map component/start %)))
 (alter-var-root #'nodes #(doall (pmap component/stop %)))
-
-
