@@ -1,0 +1,65 @@
+{
+  "format": 1,
+  "restore": {
+    "/home/bart/dev/sandbox/learn-fsharp/console/console.fsproj": {}
+  },
+  "projects": {
+    "/home/bart/dev/sandbox/learn-fsharp/console/console.fsproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/bart/dev/sandbox/learn-fsharp/console/console.fsproj",
+        "projectName": "console",
+        "projectPath": "/home/bart/dev/sandbox/learn-fsharp/console/console.fsproj",
+        "packagesPath": "/home/bart/.nuget/packages/",
+        "outputPath": "/home/bart/dev/sandbox/learn-fsharp/console/obj/",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "/usr/share/dotnet/sdk/NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "/home/bart/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp2.2"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp2.2": {
+            "projectReferences": {}
+          }
+        }
+      },
+      "frameworks": {
+        "netcoreapp2.2": {
+          "dependencies": {
+            "FSharp.Core": {
+              "target": "Package",
+              "version": "[4.6.2, )"
+            },
+            "FSharp.Json": {
+              "target": "Package",
+              "version": "[0.3.7, )"
+            },
+            "Microsoft.NETCore.App": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.2.0, )",
+              "autoReferenced": true
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[12.0.3-beta1, )"
+            }
+          },
+          "imports": [
+            "net461"
+          ],
+          "assetTargetFallback": true,
+          "warn": true
+        }
+      }
+    }
+  }
+}

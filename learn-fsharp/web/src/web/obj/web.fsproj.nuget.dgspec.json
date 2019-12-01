@@ -1,0 +1,69 @@
+{
+  "format": 1,
+  "restore": {
+    "/home/bart/dev/sandbox/learn-fsharp/web/src/web/web.fsproj": {}
+  },
+  "projects": {
+    "/home/bart/dev/sandbox/learn-fsharp/web/src/web/web.fsproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/bart/dev/sandbox/learn-fsharp/web/src/web/web.fsproj",
+        "projectName": "web",
+        "projectPath": "/home/bart/dev/sandbox/learn-fsharp/web/src/web/web.fsproj",
+        "packagesPath": "/home/bart/.nuget/packages/",
+        "outputPath": "/home/bart/dev/sandbox/learn-fsharp/web/src/web/obj/",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "/usr/share/dotnet/sdk/NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "/home/bart/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp2.1"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp2.1": {
+            "projectReferences": {}
+          }
+        }
+      },
+      "frameworks": {
+        "netcoreapp2.1": {
+          "dependencies": {
+            "FSharp.Core": {
+              "target": "Package",
+              "version": "[4.6.2, )"
+            },
+            "Giraffe": {
+              "target": "Package",
+              "version": "[3.6.*, )"
+            },
+            "Microsoft.AspNetCore.App": {
+              "target": "Package",
+              "version": "[2.2.*, )"
+            },
+            "Microsoft.NETCore.App": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.1.0, )",
+              "autoReferenced": true
+            },
+            "TaskBuilder.fs": {
+              "target": "Package",
+              "version": "[2.1.*, )"
+            }
+          },
+          "imports": [
+            "net461"
+          ],
+          "assetTargetFallback": true,
+          "warn": true
+        }
+      }
+    }
+  }
+}

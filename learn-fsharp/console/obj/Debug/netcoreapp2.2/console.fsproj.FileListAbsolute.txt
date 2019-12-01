@@ -1,0 +1,10 @@
+/home/bart/dev/sandbox/learn-fsharp/console/bin/Debug/netcoreapp2.2/console.deps.json
+/home/bart/dev/sandbox/learn-fsharp/console/bin/Debug/netcoreapp2.2/console.runtimeconfig.json
+/home/bart/dev/sandbox/learn-fsharp/console/bin/Debug/netcoreapp2.2/console.runtimeconfig.dev.json
+/home/bart/dev/sandbox/learn-fsharp/console/bin/Debug/netcoreapp2.2/console.dll
+/home/bart/dev/sandbox/learn-fsharp/console/bin/Debug/netcoreapp2.2/console.pdb
+/home/bart/dev/sandbox/learn-fsharp/console/obj/Debug/netcoreapp2.2/console.fsprojAssemblyReference.cache
+/home/bart/dev/sandbox/learn-fsharp/console/obj/Debug/netcoreapp2.2/console.AssemblyInfoInputs.cache
+/home/bart/dev/sandbox/learn-fsharp/console/obj/Debug/netcoreapp2.2/console.AssemblyInfo.fs
+/home/bart/dev/sandbox/learn-fsharp/console/obj/Debug/netcoreapp2.2/console.dll
+/home/bart/dev/sandbox/learn-fsharp/console/obj/Debug/netcoreapp2.2/console.pdb
