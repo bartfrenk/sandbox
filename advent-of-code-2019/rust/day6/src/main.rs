@@ -85,6 +85,8 @@ fn compute_distance(graph: &Graph, start: &str, end: &str) -> Option<usize> {
 
     let mut open = vec![(start, 0)];
     let mut visited = HashSet::new();
+    // TODO: What happens here. My guess is that we create a new copy of
+    // whatever value `start` references. That is strictly unecessary.
     visited.insert(start.to_string());
 
     while !open.is_empty() {
