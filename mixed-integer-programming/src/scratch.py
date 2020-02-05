@@ -1,8 +1,11 @@
+from collections import namedtuple
 from time import monotonic
 from random import randrange, choices
 from mip import Model, xsum, maximize, BINARY, CONTINUOUS, LinExpr
 from numpy.random import exponential
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def knapsack():
@@ -33,12 +36,27 @@ def random_knapsack(n: int, interval):
 
 
 class PiecewiseLinearFunction:
-    def __init__(self, a, b):
+    def __init__(self, a, b, name=None):
         self.a = a
         self.b = b
+        self.name = name
+
+    @property
+    def lb(self):
+        return min(self.a)
+
+    @property
+    def ub(self):
+        return max(self.a)
 
     def __len__(self):
         return len(self.a)
+
+    def __repr__(self):
+        return "<{}({})>".format(self.__class__.__name__, self.name or "")
+
+
+Line = namedtuple("Line", ["cost", "revenue", "plf"])
 
 
 def maximize_sum(plfs, max_costs):
@@ -71,19 +89,17 @@ def maximize_sum(plfs, max_costs):
 
     m += costs <= max_costs
     m.objective = maximize(objective)
-
     start = monotonic()
     print(m.optimize())
     print(f"DURATION: {(monotonic() - start) * 1000} ms")
 
-    u = []
-    v = []
-    for (i, plf) in enumerate(choices(plfs, k=10)):
+    optimum = []
+    for (i, plf) in enumerate(plfs):
+        k = len(plf)
         u_i = sum(ws[i][j].x * plf.a[j] for j in range(0, k))
         v_i = sum(ws[i][j].x * plf.b[j] for j in range(0, k))
-        print(f"{min(plf.a)} <= {u_i} <= {max(plf.a)}")
-        u.append(u_i)
-        v.append(v_i)
+        optimum.append(Line(cost=u_i, revenue=v_i, plf=plf))
+    return optimum
 
 
 def random_plfs(k, n):
@@ -95,7 +111,59 @@ def random_plfs(k, n):
     return result
 
 
+def read_bid_landscapes(path):
+    df = pd.read_csv(path, delimiter=",")
+    for (keyword, group) in df.groupby("keyword"):
+        plf = PiecewiseLinearFunction(group.cost.values, group.revenues.values, keyword)
+        if len(plf) > 1:
+            yield plf
+
+
 if __name__ == "__main__":
-    k = 8
-    n = 3000
-    maximize_sum(random_plfs(k, n), round(5 * k * n / 2))
+    plfs = list(read_bid_landscapes("data/scenarios_very_large.csv"))
+    print(f"Maximizing over {len(plfs)} keywords")
+    lb = sum(plf.lb for plf in plfs)
+    ub = sum(plf.ub for plf in plfs)
+    xs = []
+    ys = []
+    zs = []
+    ds = []
+    for b in np.linspace(lb, 1.5 * ub, 20):
+        start = monotonic()
+        optimum = maximize_sum(plfs, b)
+        duration = monotonic() - start
+        total = {"cost": 0, "revenue": 0}
+        print(len(optimum))
+        for line in sorted(optimum, key=lambda line: line.revenue):
+            plf = line.plf
+            print(
+                f"{plf.name}\t: {plf.lb:.2f} <= {line.cost:.2f} <= {plf.ub:.2f}: {line.revenue:.2f}"
+            )
+            total["cost"] += line.cost
+            total["revenue"] += line.revenue
+
+        print(f"Number of keywords: {len(plfs)}")
+        print(f"Feasible spend: [{lb:.2f}, {ub:.2f}]")
+        print(f"Total spend: {total['cost']:.2f}")
+        print(f"Total revenue: {total['revenue']:.2f}")
+        print(f"Duration: {duration:.2f}s")
+        total["duration"] = duration
+        xs.append(b)
+        zs.append(total["cost"])
+        ys.append(total["revenue"])
+        ds.append(duration)
+
+    fig, ax1 = plt.subplots()
+    ax1.set_xlabel("budget")
+    ax1.set_ylabel("revenue")
+    ax1.plot(xs, ys, "bo", linestyle="solid")
+    ax1.tick_params(axis="y", labelcolor="blue")
+
+    ax2 = ax1.twinx()
+    ax2.set_ylabel("spend")
+    ax2.plot(xs, zs, "ro", linestyle="solid")
+    ax2.tick_params(axis="y", labelcolor="red")
+
+    fig.tight_layout()
+
+    plt.show()
