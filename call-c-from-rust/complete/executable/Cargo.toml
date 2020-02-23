@@ -1,0 +1,12 @@
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package]
+name = "executable"
+version = "0.1.0"
+authors = ["Bart Frenk <bart.frenk@gmail.com>"]
+edition = "2018"
+build = "build.rs"
+
+
+[dependencies]
+libc = "*"

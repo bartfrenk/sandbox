@@ -1,6 +1,6 @@
 from collections import namedtuple
 from time import monotonic
-from random import randrange, choices
+from random import randrange
 from mip import Model, xsum, maximize, BINARY, CONTINUOUS, LinExpr
 from numpy.random import exponential
 import numpy as np
@@ -119,7 +119,13 @@ def read_bid_landscapes(path):
             yield plf
 
 
-if __name__ == "__main__":
+def test():
+    plfs = random_plfs(100, 30)
+    budget = sum([plf.ub + plf.lb for plf in plfs]) / 2
+    maximize_sum(plfs, budget)
+
+
+def main():
     plfs = list(read_bid_landscapes("data/scenarios_very_large.csv"))
     print(f"Maximizing over {len(plfs)} keywords")
     lb = sum(plf.lb for plf in plfs)
@@ -167,3 +173,7 @@ if __name__ == "__main__":
     fig.tight_layout()
 
     plt.show()
+
+
+if __name__ == "__main__":
+    test()
